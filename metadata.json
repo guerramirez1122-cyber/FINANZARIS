@@ -1,0 +1,6 @@
+{
+  "name": "FamilyLedger - AI Ticket & Expense Hub",
+  "description": "Collaborative family expense tracking dashboard integrated with Google Sheets and AI receipt capture, featuring smart audits, fair split settlements, budget pacing, and spending optimization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
