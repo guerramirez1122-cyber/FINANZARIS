@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   FamilyMember, 
   ExpenseCategory, 
@@ -13,10 +13,9 @@ import {
   ArrowRight, 
   RefreshCw, 
   FileSpreadsheet,
-  Sliders,
-  Users,
-  PieChart,
-  Receipt
+  Calendar,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 
 interface DashboardOverviewProps {
@@ -24,29 +23,40 @@ interface DashboardOverviewProps {
   categories: ExpenseCategory[];
   members: FamilyMember[];
   financialPlan: HouseholdFinancialPlan;
-  onOpenBudgetSettings: () => void;
+  onOpenBudgetSettings?: () => void;
   onOpenSourcesModal?: () => void;
   selectedMonth: string;
   setSelectedMonth: (m: string) => void;
   onSelectTicket: (t: ExpenseTicket) => void;
-  onNavigateTab: (tab: 'overview' | 'spending' | 'audit' | 'splits' | 'improvements' | 'sheets') => void;
+  onNavigateTab: (tab: 'overview' | 'spending' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
   onSyncSheets: () => void;
   isSyncing: boolean;
   isMobileMode?: boolean;
 }
 
+const MONTH_OPTIONS = [
+  { id: '2026-10', label: 'Octubre 2026', shortLabel: 'Oct 2026' },
+  { id: '2026-09', label: 'Septiembre 2026', shortLabel: 'Sep 2026' },
+  { id: '2026-08', label: 'Agosto 2026', shortLabel: 'Ago 2026' },
+];
+
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   tickets,
   categories,
-  onOpenBudgetSettings,
-  onOpenSourcesModal,
   selectedMonth,
   setSelectedMonth,
   onNavigateTab,
   onSyncSheets,
   isSyncing,
 }) => {
+  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const metrics = calculateOverviewMetrics(tickets, categories, selectedMonth);
+
+  const currentMonthOption = MONTH_OPTIONS.find((m) => m.id === selectedMonth) || {
+    id: selectedMonth,
+    label: selectedMonth,
+    shortLabel: selectedMonth,
+  };
 
   return (
     <div className="space-y-6">
@@ -63,67 +73,66 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Month selector */}
-          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 text-xs shadow-2xs min-h-[44px]">
+        <div className="flex items-center gap-2">
+          {/* Single Selectable Month Button (Strict Single-Month View, No Summing) */}
+          <div className="relative">
             <button
-              onClick={() => setSelectedMonth('2026-10')}
-              className={`min-h-[36px] px-3.5 py-1.5 rounded-lg transition-colors font-medium ${
-                selectedMonth === '2026-10'
-                  ? 'bg-slate-900 text-white font-bold'
-                  : 'hover:bg-slate-100 text-slate-600'
-              }`}
+              type="button"
+              onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
+              className="min-h-[44px] flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95 touch-manipulation"
+              title="Seleccionar mes para ver gastos individuales de ese mes"
             >
-              Oct 2026
+              <Calendar className="w-4 h-4 text-indigo-600" />
+              <span>{currentMonthOption.label}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isMonthDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
-            <button
-              onClick={() => setSelectedMonth('2026-09')}
-              className={`min-h-[36px] px-3.5 py-1.5 rounded-lg transition-colors font-medium ${
-                selectedMonth === '2026-09'
-                  ? 'bg-slate-900 text-white font-bold'
-                  : 'hover:bg-slate-100 text-slate-600'
-              }`}
-            >
-              Sep 2026
-            </button>
+
+            {isMonthDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setIsMonthDropdownOpen(false)} 
+                />
+                <div className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 animate-fade-in">
+                  <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Ver mes individual
+                  </div>
+                  {MONTH_OPTIONS.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => {
+                        setSelectedMonth(m.id);
+                        setIsMonthDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 text-xs transition-colors text-left ${
+                        selectedMonth === m.id
+                          ? 'bg-indigo-50 font-bold text-indigo-600'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{m.label}</span>
+                      {selectedMonth === m.id && <Check className="w-4 h-4 text-indigo-600" />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Sync Sheet Trigger */}
           <button
             onClick={onSyncSheets}
             disabled={isSyncing}
-            className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95 touch-manipulation"
+            className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95 touch-manipulation disabled:opacity-50"
             title="Refrescar datos desde Google Sheets"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${isSyncing ? 'animate-spin text-indigo-600' : ''}`} />
             <span className="hidden sm:inline">{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
           </button>
-
-          {/* Sources & Members Settings Trigger */}
-          {onOpenSourcesModal && (
-            <button
-              onClick={onOpenSourcesModal}
-              className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95 touch-manipulation"
-              title="Configurar orígenes de datos, nombres y números"
-            >
-              <Users className="w-4 h-4 text-slate-500" />
-              <span>Fuentes</span>
-            </button>
-          )}
-
-          {/* Budget Modal Trigger */}
-          <button
-            onClick={onOpenBudgetSettings}
-            className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95 touch-manipulation"
-            title="Configurar metas de presupuesto y división"
-          >
-            <Sliders className="w-4 h-4 text-slate-500" />
-            <span>Presupuesto</span>
-          </button>
         </div>
       </div>
 
-      {/* Primary Minimal View: 4 Key Metric Cards */}
+      {/* Primary Minimal View: ONLY 4 Key Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Family Spend */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
@@ -227,31 +236,6 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Minimal Navigation Callout to Spending Tab */}
-      <div className="bg-gradient-to-r from-indigo-50/80 to-slate-50 border border-indigo-100/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
-            <PieChart className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">
-              Límites de Presupuesto por Categoría &amp; Tickets
-            </h3>
-            <p className="text-xs text-slate-500">
-              Consulta el desglose detallado de gastos y tickets asociados en la nueva pestaña Spending.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => onNavigateTab('spending')}
-          className="min-h-[44px] px-4 py-2 bg-white hover:bg-slate-50 text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1.5 self-start sm:self-auto shrink-0 active:scale-95 touch-manipulation"
-        >
-          <span>Abrir Pestaña Spending</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );

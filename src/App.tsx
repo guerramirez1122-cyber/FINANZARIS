@@ -32,6 +32,7 @@ import { ConfirmSheetUpdateModal } from './components/ConfirmSheetUpdateModal';
 import { BudgetSettingsModal } from './components/BudgetSettingsModal';
 import { FamilySourcesSettingsModal } from './components/FamilySourcesSettingsModal';
 import { BottomNavBar } from './components/BottomNavBar';
+import { SettingsView } from './components/SettingsView';
 import { CheckCircle2, Smartphone, Monitor, Wifi, Battery, Signal, Camera } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { 
@@ -117,7 +118,7 @@ export default function App() {
 
   const [improvements] = useState<ProposedImprovement[]>(PROPOSED_IMPROVEMENTS);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'spending' | 'audit' | 'splits' | 'improvements' | 'sheets'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'spending' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets'>('overview');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [selectedTicket, setSelectedTicket] = useState<ExpenseTicket | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -359,7 +360,7 @@ export default function App() {
         />
 
         {/* Main Content Area */}
-        <main className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 pb-28 ${isMobileMode ? 'max-w-full' : 'max-w-7xl'}`}>
+        <main className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 pb-36 ${isMobileMode ? 'max-w-full' : 'max-w-7xl'}`}>
           {toastMessage && (
             <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700 animate-fade-in max-w-[90vw]">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -454,6 +455,24 @@ export default function App() {
               categories={categories}
             />
           )}
+
+          {activeTab === 'settings' && (
+            <SettingsView
+              financialPlan={financialPlan}
+              members={members}
+              categories={categories}
+              onOpenBudgetSettings={() => setIsBudgetModalOpen(true)}
+              onOpenSourcesModal={() => setIsSourcesModalOpen(true)}
+              onSyncSheets={handleSyncSheets}
+              isSyncing={isSyncing}
+              googleUser={googleUser}
+              googleAccessToken={googleAccessToken}
+              onGoogleSignIn={handleGoogleSignIn}
+              onGoogleSignOut={handleGoogleSignOut}
+              isMobileMode={isMobileMode}
+              onToggleMobileMode={() => setIsMobileMode(!isMobileMode)}
+            />
+          )}
         </main>
 
         {/* Clean quiet footer (only shown when in desktop full mode) */}
@@ -488,6 +507,27 @@ export default function App() {
             </div>
           </footer>
         )}
+
+        {/* Google Drive Style Floating Camera Scanner Action Button - Always Floating & Visible On Scroll */}
+        <aside 
+          aria-label="Acceso rápido para escanear tickets"
+          className="fixed bottom-20 right-4 sm:bottom-22 sm:right-6 z-50 pointer-events-auto"
+        >
+          <button
+            type="button"
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2.5 px-4 sm:px-5 py-3.5 bg-gradient-to-tr from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 active:scale-95 text-white rounded-2xl sm:rounded-full shadow-[0_10px_30px_rgba(79,70,229,0.5)] hover:shadow-[0_14px_36px_rgba(79,70,229,0.6)] border-2 border-white ring-4 ring-indigo-500/20 transition-all group touch-manipulation min-h-[52px]"
+            title="Escanear ticket con cámara trasera (Estilo Google Drive)"
+            aria-label="Escanear o subir ticket con la cámara"
+          >
+            <div className="w-7 h-7 rounded-xl sm:rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Camera className="w-4.5 h-4.5 stroke-[2.4] text-white group-hover:scale-110 transition-transform" />
+            </div>
+            <span className="text-xs sm:text-sm font-bold tracking-tight text-white pr-1 select-none">
+              Escanear
+            </span>
+          </button>
+        </aside>
 
         {/* Fixed Mobile Bottom Navigation Bar with clear icons and tabs */}
         <BottomNavBar
