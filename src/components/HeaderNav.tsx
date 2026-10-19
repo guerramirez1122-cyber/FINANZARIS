@@ -1,11 +1,11 @@
 import React from 'react';
-import { Plus, CheckCircle2, User as UserIcon, Settings2 } from 'lucide-react';
+import { Plus, CheckCircle2, User as UserIcon, Settings2, Smartphone, Monitor } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { GoogleSignInButton } from './GoogleSignInButton';
 
 interface HeaderNavProps {
-  activeTab: 'overview' | 'audit' | 'splits' | 'improvements' | 'sheets';
-  setActiveTab: (tab: 'overview' | 'audit' | 'splits' | 'improvements' | 'sheets') => void;
+  activeTab: 'overview' | 'spending' | 'audit' | 'splits' | 'improvements' | 'sheets';
+  setActiveTab: (tab: 'overview' | 'spending' | 'audit' | 'splits' | 'improvements' | 'sheets') => void;
   onOpenAddModal: () => void;
   onOpenSourcesModal: () => void;
   needsReviewCount: number;
@@ -13,6 +13,8 @@ interface HeaderNavProps {
   onGoogleSignIn: () => void;
   onGoogleSignOut: () => void;
   isAuthLoading: boolean;
+  isMobileMode?: boolean;
+  onToggleMobileMode?: () => void;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -25,6 +27,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onGoogleSignIn,
   onGoogleSignOut,
   isAuthLoading,
+  isMobileMode = false,
+  onToggleMobileMode,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
@@ -43,7 +47,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         </div>
 
         {/* Zone 2: Clean single-line text navigation links */}
-        <nav className="hidden md:flex items-center gap-6 text-xs sm:text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-5 text-xs sm:text-sm font-medium">
           <button
             onClick={() => setActiveTab('overview')}
             className={`whitespace-nowrap shrink-0 py-1 transition-colors ${
@@ -53,6 +57,20 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             }`}
           >
             Dashboard
+          </button>
+
+          <button
+            onClick={() => setActiveTab('spending')}
+            className={`whitespace-nowrap shrink-0 py-1 transition-colors flex items-center gap-1.5 ${
+              activeTab === 'spending'
+                ? 'text-indigo-600 font-semibold border-b-2 border-indigo-600'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <span>Spending</span>
+            <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 rounded px-1.5 py-0.2">
+              Límites
+            </span>
           </button>
 
           <button
@@ -155,12 +173,37 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
             <span>Sources &amp; Names</span>
           </button>
 
+          {onToggleMobileMode && (
+            <button
+              onClick={onToggleMobileMode}
+              className={`min-h-[48px] sm:min-h-[40px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border transition-all active:scale-95 touch-manipulation ${
+                isMobileMode
+                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+              title={isMobileMode ? 'Cambiar a vista de escritorio' : 'Ver en formato de app de teléfono móvil'}
+            >
+              {isMobileMode ? (
+                <>
+                  <Smartphone className="w-4 h-4 text-indigo-600" />
+                  <span className="font-bold">📱 Vista Móvil</span>
+                </>
+              ) : (
+                <>
+                  <Smartphone className="w-4 h-4 text-slate-500" />
+                  <span className="hidden sm:inline">📱 Vista Móvil</span>
+                  <span className="sm:hidden">📱</span>
+                </>
+              )}
+            </button>
+          )}
+
           <button
             onClick={onOpenAddModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-2xs whitespace-nowrap shrink-0"
+            className="min-h-[48px] sm:min-h-[40px] flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-all shadow-md shadow-indigo-600/20 whitespace-nowrap shrink-0 active:scale-95 touch-manipulation"
           >
-            <Plus className="w-4 h-4" />
-            <span>Upload Ticket</span>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Subir Ticket</span>
           </button>
         </div>
       </div>

@@ -3,6 +3,7 @@
   "appId": "1:1008571144080:web:44e96548ae424cc52d8515",
   "apiKey": "AIzaSyDLyB1b3w6T9WKuebVKSUeiieuH6iQRY78",
   "authDomain": "presupuesto-familiar-498719.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-familyledgeraiti-f1a7d005-9513-4c30-9d35-c94b456f9a67",
   "storageBucket": "presupuesto-familiar-498719.firebasestorage.app",
   "messagingSenderId": "1008571144080",
   "measurementId": "",

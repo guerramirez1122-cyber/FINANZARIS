@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   ExpenseTicket, 
   FamilyMember, 
@@ -14,7 +14,11 @@ import {
   Check, 
   Receipt, 
   Plus, 
-  Trash2 
+  Trash2,
+  Image as ImageIcon,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 interface AddTicketModalProps {
@@ -46,41 +50,74 @@ export const AddTicketModal: React.FC<AddTicketModalProps> = ({
     { id: 'item-1', description: 'General Items', quantity: 1, unitPrice: 0, lineTotal: 0 },
   ]);
 
-  // AI Scan Simulation preset options
-  const handleSimulateScan = (preset: 'trader_joes' | 'home_depot' | 'bakery') => {
-    if (preset === 'trader_joes') {
-      setMerchant("Trader Joe's Supermarket");
-      setAmount('64.20');
-      setCategory('Groceries & Market');
-      setTaxAmount('3.10');
-      setAiConfidence(98);
-      setItems([
-        { id: 'tj-1', description: 'Organic Greek Yogurt 32oz', quantity: 2, unitPrice: 5.49, lineTotal: 10.98 },
-        { id: 'tj-2', description: 'Frozen Vegetable Medley', quantity: 3, unitPrice: 3.29, lineTotal: 9.87 },
-        { id: 'tj-3', description: 'Cold Brew Coffee Concentrate', quantity: 2, unitPrice: 8.99, lineTotal: 17.98 },
-        { id: 'tj-4', description: 'Almond Butter & Spelt Bread', quantity: 1, unitPrice: 22.27, lineTotal: 22.27 },
-      ]);
-    } else if (preset === 'home_depot') {
-      setMerchant('The Home Depot #0612');
-      setAmount('134.80');
-      setCategory('Home & Utilities');
-      setTaxAmount('11.20');
-      setAiConfidence(94);
-      setItems([
-        { id: 'hd-1', description: 'Lawn Fertilizer & Spreader Bag', quantity: 1, unitPrice: 42.50, lineTotal: 42.50 },
-        { id: 'hd-2', description: 'LED Warm White Bulbs (Pack of 8)', quantity: 2, unitPrice: 19.99, lineTotal: 39.98 },
-        { id: 'hd-3', description: 'Heavy Duty Garden Hose 50ft', quantity: 1, unitPrice: 41.12, lineTotal: 41.12 },
-      ]);
-    } else {
-      setMerchant('Blue Daisy Bakery');
-      setAmount('18.50');
-      setCategory('Dining & Outings');
-      setTaxAmount('1.25');
-      setAiConfidence(84);
-      setItems([
-        { id: 'bk-1', description: 'Cappuccino & Scones', quantity: 2, unitPrice: 8.62, lineTotal: 17.25 },
-      ]);
-    }
+  // Image capture & OCR states
+  const [capturedImagePreview, setCapturedImagePreview] = useState<string | null>(null);
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const [ocrSuccessMessage, setOcrSuccessMessage] = useState<string | null>(null);
+  const [ocrErrorMessage, setOcrErrorMessage] = useState<string | null>(null);
+
+  // Native camera input with capture="environment" (rear mobile camera)
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset messages
+    setOcrSuccessMessage(null);
+    setOcrErrorMessage(null);
+    setIsOcrProcessing(true);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64Data = event.target?.result as string;
+      setCapturedImagePreview(base64Data);
+
+      try {
+        const response = await fetch('/api/ocr-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: base64Data,
+            mimeType: file.type || 'image/jpeg',
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            if (data.merchant) setMerchant(data.merchant);
+            if (data.amount !== undefined) setAmount(Number(data.amount).toFixed(2));
+            if (data.taxAmount !== undefined) setTaxAmount(Number(data.taxAmount).toFixed(2));
+            if (data.date) setDate(data.date);
+            if (data.category) setCategory(data.category);
+            if (data.aiConfidence) setAiConfidence(data.aiConfidence);
+            if (Array.isArray(data.items) && data.items.length > 0) {
+              setItems(data.items);
+            }
+            setOcrSuccessMessage(`¡Ticket analizado con éxito por Gemini! Comercio: "${data.merchant || 'Detectado'}", Total: $${Number(data.amount || 0).toFixed(2)}`);
+          } else {
+            throw new Error(data.error || 'No se pudieron extraer datos del ticket');
+          }
+        } else {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || `Error del servidor HTTP ${response.status}`);
+        }
+      } catch (err: any) {
+        console.warn('Error llamando a Gemini OCR:', err);
+        setOcrErrorMessage('No se pudieron extraer los datos automáticamente. Por favor revisa y completa los campos abajo.');
+        // Set fallback friendly initial values based on image capture
+        if (!merchant) setMerchant('Comercio Ticket');
+      } finally {
+        setIsOcrProcessing(false);
+      }
+    };
+    reader.onerror = () => {
+      setIsOcrProcessing(false);
+      setOcrErrorMessage('Error al leer el archivo de imagen de la cámara.');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,9 +149,9 @@ export const AddTicketModal: React.FC<AddTicketModalProps> = ({
       items: items.length > 0 ? items : [{ id: 'i1', description: merchant, quantity: 1, unitPrice: parsedAmount, lineTotal: parsedAmount }],
       aiConfidence,
       status: aiConfidence >= 90 ? 'verified' : 'needs_review',
-      source: 'ai_ocr_pipeline',
-      sheetRowIndex: 153,
-      tags: ['Manual / Upload Ingest'],
+      source: capturedImagePreview ? 'mobile_camera' : 'ai_ocr_pipeline',
+      sheetRowIndex: 154,
+      tags: [capturedImagePreview ? 'Cámara Móvil Trasera' : 'Manual / Upload Ingest'],
       aiNotes: `Ingested via FamilyLedger OCR simulator with ${aiConfidence}% confidence rating.`,
     };
 
@@ -123,75 +160,126 @@ export const AddTicketModal: React.FC<AddTicketModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+      {/* Mobile-friendly bottom-sheet container */}
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full p-5 sm:p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto safe-area-pb">
+        {/* Mobile Pull Handle Indicator */}
+        <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto sm:hidden" />
+
+        {/* Hidden Native File Inputs */}
+        {/* Input 1: Camera rear environment */}
+        <input 
+          ref={cameraInputRef}
+          type="file" 
+          accept="image/*" 
+          capture="environment" 
+          className="hidden" 
+          onChange={handleImageFileChange}
+          aria-label="Capturar ticket con cámara trasera"
+        />
+        {/* Input 2: Gallery picker */}
+        <input 
+          ref={galleryInputRef}
+          type="file" 
+          accept="image/*" 
+          className="hidden" 
+          onChange={handleImageFileChange}
+          aria-label="Seleccionar foto de galería"
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Ingest Ticket / Receipt</h2>
+            <h2 className="text-lg font-bold text-slate-900">Escanear Ticket / Gasto</h2>
             <p className="text-xs text-slate-500">
-              Simulate AI OCR ticket parsing or enter paper ticket details
+              Abre la cámara trasera de tu móvil o selecciona una foto
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors"
+            aria-label="Cerrar ventana"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* AI Fast Simulation Presets */}
-        <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl space-y-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-950">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
-            <span>Fast AI Vision OCR Simulation Presets</span>
+        {/* Hero Camera Trigger Card (Mobile-First with >= 48px touch targets) */}
+        <div className="bg-indigo-50/70 border-2 border-dashed border-indigo-300 rounded-2xl p-4 text-center space-y-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+            {/* Primary Action Button: Opens rear camera directly via capture="environment" */}
+            <button
+              type="button"
+              onClick={() => cameraInputRef.current?.click()}
+              className="w-full sm:w-auto min-h-[48px] px-5 py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-md shadow-indigo-600/25 transition-transform active:scale-[0.98] touch-manipulation"
+            >
+              <Camera className="w-5 h-5 shrink-0" />
+              <span>Tomar Foto con Cámara Trasera</span>
+            </button>
+
+            {/* Secondary Action: Select from photo gallery */}
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              className="w-full sm:w-auto min-h-[48px] px-4 py-3 bg-white hover:bg-indigo-50/50 text-indigo-700 border border-indigo-200 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-colors active:scale-[0.98] touch-manipulation"
+            >
+              <ImageIcon className="w-4 h-4 shrink-0" />
+              <span>Elegir de Galería</span>
+            </button>
           </div>
-          <p className="text-xs text-indigo-800">
-            Click a preset to simulate camera receipt capture and automatic line-item parsing:
+
+          <p className="text-[11px] text-slate-500">
+            Utiliza la cámara trasera de tu teléfono para enfocar el recibo con buena iluminación.
           </p>
-          <div className="flex flex-wrap gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => handleSimulateScan('trader_joes')}
-              className="px-3 py-1.5 text-xs font-semibold bg-white text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors shadow-2xs"
-            >
-              Trader Joe&apos;s ($64.20)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSimulateScan('home_depot')}
-              className="px-3 py-1.5 text-xs font-semibold bg-white text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors shadow-2xs"
-            >
-              Home Depot ($134.80)
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSimulateScan('bakery')}
-              className="px-3 py-1.5 text-xs font-semibold bg-white text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors shadow-2xs"
-            >
-              Bakery Coffee ($18.50)
-            </button>
-          </div>
+
+          {/* OCR Processing State */}
+          {isOcrProcessing && (
+            <div className="p-3 bg-white/80 rounded-xl border border-indigo-200 flex items-center justify-center gap-2 text-indigo-700 text-xs font-semibold animate-pulse">
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+              <span>Gemini Vision analizando ticket y extrayendo conceptos...</span>
+            </div>
+          )}
+
+          {/* OCR Error / Manual Warning */}
+          {ocrErrorMessage && (
+            <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center gap-2 text-amber-900 text-xs font-medium text-left">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>{ocrErrorMessage}</span>
+            </div>
+          )}
+
+          {/* Scanned Image Preview Thumbnail */}
+          {capturedImagePreview && (
+            <div className="relative inline-block mt-1">
+              <img 
+                src={capturedImagePreview} 
+                alt="Ticket capturado" 
+                className="w-24 h-28 object-cover rounded-xl border-2 border-indigo-400 shadow-md mx-auto"
+              />
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-indigo-700 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                Ticket Capturado
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">Merchant Name</label>
+              <label className="text-xs font-semibold text-slate-700">Comercio / Tienda</label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Costco Wholesale"
+                placeholder="ej. Costco, Supermercado..."
                 value={merchant}
                 onChange={(e) => setMerchant(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-indigo-500 font-medium"
+                className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-indigo-500 font-medium min-h-[48px]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">Total Charged ($)</label>
+              <label className="text-xs font-semibold text-slate-700">Total a Pagar ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -199,18 +287,18 @@ export const AddTicketModal: React.FC<AddTicketModalProps> = ({
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-indigo-500 font-mono font-bold"
+                className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-indigo-500 font-mono font-bold min-h-[48px]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">Category</label>
+              <label className="text-xs font-semibold text-slate-700">Categoría</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-indigo-500"
+                className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-indigo-500 min-h-[48px]"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.name}>
@@ -221,11 +309,11 @@ export const AddTicketModal: React.FC<AddTicketModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">Paid By</label>
+              <label className="text-xs font-semibold text-slate-700">Pagado Por</label>
               <select
                 value={paidBy}
                 onChange={(e) => setPaidBy(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-indigo-500"
+                className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-indigo-500 min-h-[48px]"
               >
                 {members.map((m) => (
                   <option key={m.id} value={m.id}>
@@ -236,56 +324,58 @@ export const AddTicketModal: React.FC<AddTicketModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">Split Rule</label>
+              <label className="text-xs font-semibold text-slate-700">Regla de División</label>
               <select
                 value={splitType}
                 onChange={(e) => setSplitType(e.target.value as SplitType)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-indigo-500"
+                className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-indigo-500 min-h-[48px]"
               >
-                <option value="parents_only">Parents 50/50 Shared</option>
-                <option value="equal_all">Equal All Family</option>
-                <option value="personal">100% Personal</option>
+                <option value="parents_only">Padres 50/50 Fondo Común</option>
+                <option value="equal_all">Todos por Igual (Familia)</option>
+                <option value="personal">100% Gasto Personal</option>
               </select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">Date on Receipt</label>
+              <label className="text-xs font-semibold text-slate-700">Fecha del Recibo</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-indigo-500 font-mono"
+                className="w-full text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-900 focus:outline-indigo-500 font-mono min-h-[48px]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-700">AI Confidence Rating ({aiConfidence}%)</label>
-              <input
-                type="range"
-                min="60"
-                max="100"
-                value={aiConfidence}
-                onChange={(e) => setAiConfidence(Number(e.target.value))}
-                className="w-full accent-indigo-600 mt-2"
-              />
+              <label className="text-xs font-semibold text-slate-700">Confianza IA ({aiConfidence}%)</label>
+              <div className="pt-2">
+                <input
+                  type="range"
+                  min="60"
+                  max="100"
+                  value={aiConfidence}
+                  onChange={(e) => setAiConfidence(Number(e.target.value))}
+                  className="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Line items preview */}
+          {/* Line items preview as cards on small screens */}
           {items.length > 0 && (
             <div className="pt-2 border-t border-slate-100 space-y-2">
               <div className="text-xs font-semibold text-slate-800">
-                Extracted Line Items ({items.length})
+                Conceptos Detectados ({items.length})
               </div>
-              <div className="max-h-32 overflow-y-auto space-y-1 text-xs">
+              <div className="max-h-36 overflow-y-auto space-y-2 pr-1">
                 {items.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-2 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-between font-mono"
+                    className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between text-xs font-mono"
                   >
-                    <span className="font-sans text-slate-700 truncate max-w-[280px]">
+                    <span className="font-sans text-slate-700 truncate max-w-[200px] sm:max-w-[280px]">
                       {item.description}
                     </span>
                     <span className="text-slate-900 font-semibold tabular-nums">
@@ -297,20 +387,20 @@ export const AddTicketModal: React.FC<AddTicketModalProps> = ({
             </div>
           )}
 
-          {/* Submit Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+          {/* Submit Action Buttons with >= 48px touch targets */}
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg"
+              className="w-full sm:w-auto min-h-[48px] px-5 py-3 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-xl transition-colors text-center"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-2xs"
+              className="w-full sm:w-auto min-h-[48px] px-6 py-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl transition-all shadow-md shadow-indigo-600/20 active:scale-[0.98] text-center"
             >
-              Ingest & Append to Sheet
+              Guardar e Ingresar a Google Sheets
             </button>
           </div>
         </form>

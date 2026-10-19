@@ -110,62 +110,67 @@ export const FamilySourcesSettingsModal: React.FC<FamilySourcesSettingsModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-3xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl border border-slate-200 shadow-2xl max-w-3xl w-full p-5 sm:p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto safe-area-pb">
+        {/* Mobile Pull Handle */}
+        <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto sm:hidden" />
+
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
-              Connect Sources, Names &amp; Phone Numbers
+              Conectar Fuentes, Nombres y Teléfonos
             </h2>
             <p className="text-xs text-slate-500">
-              Configure your Google Sheet/Form database, update family profiles, and link WhatsApp
+              Configura tu base de datos Google Sheet, perfiles familiares y enlace de WhatsApp
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors"
+            aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Controls */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl min-h-[48px] overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab('members')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            className={`flex-1 min-h-[40px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'members'
-                ? 'bg-white text-slate-900 shadow-2xs'
+                ? 'bg-white text-slate-900 shadow-2xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Family Members &amp; Phone Numbers ({localMembers.length})
+            Miembros ({localMembers.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('sources')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            className={`flex-1 min-h-[40px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'sources'
-                ? 'bg-white text-slate-900 shadow-2xs'
+                ? 'bg-white text-slate-900 shadow-2xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Data Sources (Sheets, Form &amp; WhatsApp)
+            Fuentes (Sheets &amp; Form)
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('guide')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            className={`flex-1 min-h-[40px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'guide'
-                ? 'bg-white text-slate-900 shadow-2xs'
+                ? 'bg-white text-slate-900 shadow-2xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Step-by-Step Connection Guide
+            Guía de Conexión
           </button>
         </div>
+
 
         {/* Tab 1: Family Members & Numbers */}
         {activeTab === 'members' && (
@@ -458,24 +463,24 @@ export const FamilySourcesSettingsModal: React.FC<FamilySourcesSettingsModalProp
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-          <div className="text-xs text-slate-500">
-            {localMembers.length} family profiles configured
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200">
+          <div className="text-xs text-slate-500 text-center sm:text-left">
+            {localMembers.length} perfiles familiares configurados
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg"
+              className="flex-1 sm:flex-initial min-h-[48px] px-5 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-xl transition-colors text-center"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="button"
               onClick={handleSaveAll}
-              className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-2xs"
+              className="flex-1 sm:flex-initial min-h-[48px] px-6 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 active:bg-slate-700 rounded-xl transition-all shadow-md active:scale-95 text-center"
             >
-              Save Members &amp; Sources
+              Guardar Fuentes y Miembros
             </button>
           </div>
         </div>

@@ -96,10 +96,10 @@ export const FamilySplitsView: React.FC<FamilySplitsViewProps> = ({
 
         <button
           onClick={onOpenBudgetSettings}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-auto shrink-0"
+          className="min-h-[48px] flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-auto shrink-0 active:scale-95 touch-manipulation"
         >
-          <Sliders className="w-3.5 h-3.5 text-indigo-600" />
-          <span>Edit Split Ratios &amp; Earnings</span>
+          <Sliders className="w-4 h-4 text-indigo-600" />
+          <span>Editar Proporciones e Ingresos</span>
         </button>
       </div>
 
@@ -118,27 +118,27 @@ export const FamilySplitsView: React.FC<FamilySplitsViewProps> = ({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400">
                 <Sparkles className="w-4 h-4" />
-                <span>Recommended Balance Settlement for {selectedMonth}</span>
+                <span>Liquidación Recomendada para {selectedMonth}</span>
               </div>
               <div className="flex items-baseline gap-3">
                 <h2 className="text-3xl font-extrabold font-mono tabular-nums text-white">
                   {formatCurrency(settlements[0].amount)}
                 </h2>
                 <span className="text-sm text-slate-300">
-                  net transfer to equalize shared family pool
+                  transferencia para equilibrar el gasto familiar
                 </span>
               </div>
               <p className="text-xs text-slate-300 max-w-xl">
-                Calculated by auditing all shared household tickets (Costco, PG&E, Trader Joe&apos;s) against personal purchases.
+                Calculado auditando todos los tickets compartidos del hogar vs gastos personales.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
               <button
                 onClick={() => handleRecordSettlement(settlements[0])}
-                className="px-5 py-2.5 text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 rounded-lg transition-colors shadow-xs whitespace-nowrap"
+                className="min-h-[48px] px-6 py-3 text-xs font-bold text-slate-900 bg-white hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-all shadow-md active:scale-95 whitespace-nowrap text-center touch-manipulation"
               >
-                Record Settlement as Settled
+                Registrar como Saldado / Pagado
               </button>
             </div>
           </div>

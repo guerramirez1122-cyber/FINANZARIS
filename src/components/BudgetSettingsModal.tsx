@@ -119,62 +119,67 @@ export const BudgetSettingsModal: React.FC<BudgetSettingsModalProps> = ({
   const p2Ratio = parentsTotalInc > 0 ? (inc2 / parentsTotalInc) * 100 : 50;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-2xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full p-5 sm:p-6 space-y-4 max-h-[92vh] sm:max-h-[85vh] overflow-y-auto safe-area-pb">
+        {/* Mobile Pull Handle */}
+        <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto sm:hidden" />
+
         {/* Top Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
-              Family Budget, Earnings &amp; Splits Settings
+              Presupuesto, Ingresos y División
             </h2>
             <p className="text-xs text-slate-500">
-              Define monthly category spending limits, family take-home earnings, and fair split rules
+              Límites mensuales por categoría, ingresos netos y reglas de reparto
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors"
+            aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Controls */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl min-h-[48px] overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab('budget')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            className={`flex-1 min-h-[40px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'budget'
-                ? 'bg-white text-slate-900 shadow-2xs'
+                ? 'bg-white text-slate-900 shadow-2xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Category Budgets ({localCategories.length})
+            Categorías ({localCategories.length})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('earnings')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            className={`flex-1 min-h-[40px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'earnings'
-                ? 'bg-white text-slate-900 shadow-2xs'
+                ? 'bg-white text-slate-900 shadow-2xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Household Earnings &amp; Savings
+            Ingresos y Ahorro
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('splits')}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+            className={`flex-1 min-h-[40px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
               activeTab === 'splits'
-                ? 'bg-white text-slate-900 shadow-2xs'
+                ? 'bg-white text-slate-900 shadow-2xs font-bold'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Family Split Ratios
+            Reglas de División
           </button>
         </div>
+
 
         {/* Financial Flow KPI Summary Card */}
         <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
@@ -499,24 +504,24 @@ export const BudgetSettingsModal: React.FC<BudgetSettingsModalProps> = ({
         )}
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-          <div className="text-xs text-slate-500">
-            Total Budget: <strong className="font-mono text-slate-900">{formatCurrency(totalBudgeted)}</strong>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200">
+          <div className="text-xs text-slate-500 text-center sm:text-left">
+            Total Presupuestado: <strong className="font-mono text-slate-900">{formatCurrency(totalBudgeted)}</strong>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg"
+              className="flex-1 sm:flex-initial min-h-[48px] px-5 py-2.5 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-xl transition-colors text-center"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               type="button"
               onClick={handleSaveAll}
-              className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors shadow-2xs"
+              className="flex-1 sm:flex-initial min-h-[48px] px-6 py-2.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 active:bg-slate-700 rounded-xl transition-all shadow-md active:scale-95 text-center"
             >
-              Save Budget &amp; Earnings
+              Guardar Configuración
             </button>
           </div>
         </div>

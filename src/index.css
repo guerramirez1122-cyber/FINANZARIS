@@ -6,9 +6,26 @@
 }
 
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
   body {
     font-family: var(--font-sans);
     background-color: #f8fafc;
     color: #0f172a;
+    -webkit-font-smoothing: antialiased;
   }
+}
+
+.safe-area-pb {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 16px));
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

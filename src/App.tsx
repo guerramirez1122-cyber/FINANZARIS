@@ -22,6 +22,7 @@ import {
 } from './data/initialData';
 import { HeaderNav } from './components/HeaderNav';
 import { DashboardOverview } from './components/DashboardOverview';
+import { SpendingView } from './components/SpendingView';
 import { TicketAuditView } from './components/TicketAuditView';
 import { FamilySplitsView } from './components/FamilySplitsView';
 import { ImprovementsView } from './components/ImprovementsView';
@@ -30,7 +31,8 @@ import { AddTicketModal } from './components/AddTicketModal';
 import { ConfirmSheetUpdateModal } from './components/ConfirmSheetUpdateModal';
 import { BudgetSettingsModal } from './components/BudgetSettingsModal';
 import { FamilySourcesSettingsModal } from './components/FamilySourcesSettingsModal';
-import { CheckCircle2 } from 'lucide-react';
+import { BottomNavBar } from './components/BottomNavBar';
+import { CheckCircle2, Smartphone, Monitor, Wifi, Battery, Signal, Camera } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { 
   initAuth, 
@@ -41,6 +43,17 @@ import {
 import { updateSheetCell } from './services/googleSheets';
 
 export default function App() {
+  // Mobile-first mode state: defaults to true so mobile layout is immediately visible!
+  const [isMobileMode, setIsMobileMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('family_ledger_mobile_mode');
+    if (saved !== null) return saved === 'true';
+    return true; // Default to mobile-first phone app view
+  });
+
+  useEffect(() => {
+    localStorage.setItem('family_ledger_mobile_mode', String(isMobileMode));
+  }, [isMobileMode]);
+
   // Local storage backed state
   const [tickets, setTickets] = useState<ExpenseTicket[]>(() => {
     const saved = localStorage.getItem('family_ledger_tickets');
@@ -104,7 +117,7 @@ export default function App() {
 
   const [improvements] = useState<ProposedImprovement[]>(PROPOSED_IMPROVEMENTS);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'splits' | 'improvements' | 'sheets'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'spending' | 'audit' | 'splits' | 'improvements' | 'sheets'>('overview');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [selectedTicket, setSelectedTicket] = useState<ExpenseTicket | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -310,99 +323,189 @@ export default function App() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900">
-      {/* Top Navigation Bar with 3-Zone Contract */}
-      <HeaderNav
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
-        onOpenSourcesModal={() => setIsSourcesModalOpen(true)}
-        needsReviewCount={needsReviewCount}
-        googleUser={googleUser}
-        onGoogleSignIn={handleGoogleSignIn}
-        onGoogleSignOut={handleGoogleSignOut}
-        isAuthLoading={isAuthLoading}
-      />
-
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
-        {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 border border-slate-700 animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{toastMessage}</span>
+    <div className={`min-h-screen ${isMobileMode ? 'bg-slate-900/95 sm:py-6 sm:px-4' : 'bg-slate-50'} flex flex-col text-slate-900 transition-colors`}>
+      {/* Main App Container: Phone Chasis when isMobileMode is true on desktop, or full screen */}
+      <div className={`mx-auto w-full transition-all flex flex-col ${
+        isMobileMode 
+          ? 'max-w-md bg-white sm:rounded-[44px] sm:border-[8px] sm:border-slate-800 sm:shadow-2xl overflow-hidden min-h-screen sm:min-h-[850px] relative' 
+          : 'max-w-7xl'
+      }`}>
+        {/* Simulated Phone Notch & Status Bar (shown when in mobile mode on desktop) */}
+        {isMobileMode && (
+          <div className="hidden sm:flex items-center justify-between px-6 pt-3 pb-2 text-[11px] font-semibold text-slate-800 bg-white border-b border-slate-100 select-none">
+            <span className="font-mono">9:41</span>
+            <div className="w-24 h-4 bg-slate-900 rounded-full mx-auto" />
+            <div className="flex items-center gap-1 text-slate-700">
+              <Signal className="w-3.5 h-3.5" />
+              <Wifi className="w-3.5 h-3.5" />
+              <Battery className="w-4 h-4" />
+            </div>
           </div>
         )}
 
-        {activeTab === 'overview' && (
-          <DashboardOverview
-            tickets={tickets}
-            categories={categories}
-            members={members}
-            financialPlan={financialPlan}
-            onOpenBudgetSettings={() => setIsBudgetModalOpen(true)}
-            onOpenSourcesModal={() => setIsSourcesModalOpen(true)}
-            selectedMonth={selectedMonth}
-            setSelectedMonth={setSelectedMonth}
-            onSelectTicket={(t) => {
-              setSelectedTicket(t);
-              setActiveTab('audit');
-            }}
-            onNavigateTab={(tab) => setActiveTab(tab)}
-            onSyncSheets={handleSyncSheets}
-            isSyncing={isSyncing}
-          />
+        {/* Top Navigation Bar */}
+        <HeaderNav
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
+          onOpenSourcesModal={() => setIsSourcesModalOpen(true)}
+          needsReviewCount={needsReviewCount}
+          googleUser={googleUser}
+          onGoogleSignIn={handleGoogleSignIn}
+          onGoogleSignOut={handleGoogleSignOut}
+          isAuthLoading={isAuthLoading}
+          isMobileMode={isMobileMode}
+          onToggleMobileMode={() => setIsMobileMode(!isMobileMode)}
+        />
+
+        {/* Main Content Area */}
+        <main className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 pb-28 ${isMobileMode ? 'max-w-full' : 'max-w-7xl'}`}>
+          {toastMessage && (
+            <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700 animate-fade-in max-w-[90vw]">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {activeTab === 'overview' && (
+            <DashboardOverview
+              tickets={tickets}
+              categories={categories}
+              members={members}
+              financialPlan={financialPlan}
+              onOpenBudgetSettings={() => setIsBudgetModalOpen(true)}
+              onOpenSourcesModal={() => setIsSourcesModalOpen(true)}
+              selectedMonth={selectedMonth}
+              setSelectedMonth={setSelectedMonth}
+              onSelectTicket={(t) => {
+                setSelectedTicket(t);
+                setActiveTab('audit');
+              }}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              onSyncSheets={handleSyncSheets}
+              isSyncing={isSyncing}
+              isMobileMode={isMobileMode}
+            />
+          )}
+
+          {activeTab === 'spending' && (
+            <SpendingView
+              tickets={tickets}
+              categories={categories}
+              members={members}
+              selectedMonth={selectedMonth}
+              setSelectedMonth={setSelectedMonth}
+              onOpenBudgetSettings={() => setIsBudgetModalOpen(true)}
+              onSelectTicket={(t) => {
+                setSelectedTicket(t);
+                setActiveTab('audit');
+              }}
+              onOpenAddModal={() => setIsAddModalOpen(true)}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
+          )}
+
+          {activeTab === 'audit' && (
+            <TicketAuditView
+              tickets={tickets}
+              members={members}
+              categories={categories}
+              selectedTicket={selectedTicket}
+              setSelectedTicket={setSelectedTicket}
+              onUpdateTicket={handleUpdateTicket}
+              onDeleteTicket={handleDeleteTicket}
+              onRequestSheetVerification={handleRequestSheetVerification}
+              onBatchVerifyAll={handleBatchVerifyAll}
+              isConnectedToSheet={!!googleAccessToken}
+            />
+          )}
+
+          {activeTab === 'splits' && (
+            <FamilySplitsView
+              tickets={tickets}
+              members={members}
+              selectedMonth={selectedMonth}
+              financialPlan={financialPlan}
+              onOpenBudgetSettings={() => setIsBudgetModalOpen(true)}
+            />
+          )}
+
+          {activeTab === 'improvements' && (
+            <ImprovementsView
+              improvements={improvements}
+              tickets={tickets}
+            />
+          )}
+
+          {activeTab === 'sheets' && (
+            <SheetsPipelineView
+              sheetConfig={sheetConfig}
+              onUpdateSheetConfig={setSheetConfig}
+              tickets={tickets}
+              onSyncSheets={handleSyncSheets}
+              isSyncing={isSyncing}
+              googleUser={googleUser}
+              googleAccessToken={googleAccessToken}
+              onGoogleSignIn={handleGoogleSignIn}
+              onGoogleSignOut={handleGoogleSignOut}
+              isAuthLoading={isAuthLoading}
+              onImportLiveTickets={handleImportLiveTickets}
+              members={members}
+              categories={categories}
+            />
+          )}
+        </main>
+
+        {/* Clean quiet footer (only shown when in desktop full mode) */}
+        {!isMobileMode && (
+          <footer className="mt-auto border-t border-slate-200 bg-white py-6 mb-16 sm:mb-0">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-slate-700">FamilyLedger</span>
+                <span aria-hidden="true">·</span>
+                <span>Google Sheets & WhatsApp Ingestion Architecture</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <button
+                  onClick={() => setActiveTab('improvements')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  WhatsApp vs Form Guide
+                </button>
+                <button
+                  onClick={() => setActiveTab('sheets')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  Google Drive & Sheets
+                </button>
+                <button
+                  onClick={() => setActiveTab('splits')}
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  Family Settlements
+                </button>
+              </div>
+            </div>
+          </footer>
         )}
 
-        {activeTab === 'audit' && (
-          <TicketAuditView
-            tickets={tickets}
-            members={members}
-            categories={categories}
-            selectedTicket={selectedTicket}
-            setSelectedTicket={setSelectedTicket}
-            onUpdateTicket={handleUpdateTicket}
-            onDeleteTicket={handleDeleteTicket}
-            onRequestSheetVerification={handleRequestSheetVerification}
-            onBatchVerifyAll={handleBatchVerifyAll}
-            isConnectedToSheet={!!googleAccessToken}
-          />
-        )}
+        {/* Fixed Mobile Bottom Navigation Bar with clear icons and tabs */}
+        <BottomNavBar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
+          onOpenBudgetModal={() => setIsBudgetModalOpen(true)}
+          needsReviewCount={needsReviewCount}
+          isMobileMode={isMobileMode}
+        />
 
-        {activeTab === 'splits' && (
-          <FamilySplitsView
-            tickets={tickets}
-            members={members}
-            selectedMonth={selectedMonth}
-            financialPlan={financialPlan}
-            onOpenBudgetSettings={() => setIsBudgetModalOpen(true)}
-          />
+        {/* Phone Bottom Home Indicator */}
+        {isMobileMode && (
+          <div className="hidden sm:block py-1 bg-white select-none">
+            <div className="w-32 h-1 bg-slate-400 rounded-full mx-auto" />
+          </div>
         )}
-
-        {activeTab === 'improvements' && (
-          <ImprovementsView
-            improvements={improvements}
-            tickets={tickets}
-          />
-        )}
-
-        {activeTab === 'sheets' && (
-          <SheetsPipelineView
-            sheetConfig={sheetConfig}
-            onUpdateSheetConfig={setSheetConfig}
-            tickets={tickets}
-            onSyncSheets={handleSyncSheets}
-            isSyncing={isSyncing}
-            googleUser={googleUser}
-            googleAccessToken={googleAccessToken}
-            onGoogleSignIn={handleGoogleSignIn}
-            onGoogleSignOut={handleGoogleSignOut}
-            isAuthLoading={isAuthLoading}
-            onImportLiveTickets={handleImportLiveTickets}
-            members={members}
-            categories={categories}
-          />
-        )}
-      </main>
+      </div>
 
       {/* Upload / Ingest Ticket Modal */}
       <AddTicketModal
@@ -464,37 +567,6 @@ export default function App() {
         onSyncSheets={handleSyncSheets}
         isSyncing={isSyncing}
       />
-
-      {/* Clean quiet footer */}
-      <footer className="mt-auto border-t border-slate-200 bg-white py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-700">FamilyLedger</span>
-            <span aria-hidden="true">·</span>
-            <span>Google Sheets & WhatsApp Ingestion Architecture</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => setActiveTab('improvements')}
-              className="hover:text-indigo-600 transition-colors"
-            >
-              WhatsApp vs Form Guide
-            </button>
-            <button
-              onClick={() => setActiveTab('sheets')}
-              className="hover:text-indigo-600 transition-colors"
-            >
-              Google Drive & Sheets
-            </button>
-            <button
-              onClick={() => setActiveTab('splits')}
-              className="hover:text-indigo-600 transition-colors"
-            >
-              Family Settlements
-            </button>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

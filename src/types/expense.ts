@@ -38,7 +38,7 @@ export interface ExpenseTicket {
   aiNotes?: string;
   status: 'verified' | 'needs_review' | 'flagged' | 'settled';
   receiptImageUrl?: string;
-  source: 'google_sheets' | 'manual_upload' | 'ai_ocr_pipeline';
+  source: 'google_sheets' | 'manual_upload' | 'ai_ocr_pipeline' | 'mobile_camera';
   sheetRowIndex?: number;
   tags: string[];
   flags?: string[];
