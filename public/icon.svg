@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#4338ca"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e0e7ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#1e1b4b" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+
+  <!-- Subtle Border Ring -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="6"/>
+
+  <!-- Main Symbol: Receipt / Card Layer with Shadow -->
+  <g filter="url(#shadow)">
+    <!-- Back Receipt (Tilted) -->
+    <rect x="130" y="100" width="220" height="300" rx="24" fill="#a5b4fc" opacity="0.4" transform="rotate(-6 240 250)"/>
+    
+    <!-- Front Receipt / Card -->
+    <rect x="146" y="106" width="220" height="300" rx="24" fill="url(#cardGrad)"/>
+
+    <!-- Receipt Header Line -->
+    <rect x="176" y="146" width="90" height="18" rx="9" fill="#4f46e5"/>
+    <circle cx="330" cy="155" r="9" fill="#10b981"/>
+
+    <!-- Divider Line -->
+    <line x1="176" y1="186" x2="336" y2="186" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="8 6"/>
+
+    <!-- Line Items -->
+    <rect x="176" y="214" width="100" height="12" rx="6" fill="#94a3b8"/>
+    <rect x="296" y="214" width="40" height="12" rx="6" fill="#64748b"/>
+
+    <rect x="176" y="244" width="80" height="12" rx="6" fill="#94a3b8"/>
+    <rect x="296" y="244" width="40" height="12" rx="6" fill="#64748b"/>
+
+    <rect x="176" y="274" width="120" height="12" rx="6" fill="#94a3b8"/>
+    <rect x="296" y="274" width="40" height="12" rx="6" fill="#64748b"/>
+
+    <!-- Total Row -->
+    <rect x="176" y="320" width="70" height="16" rx="8" fill="#1e1b4b"/>
+    <rect x="276" y="318" width="60" height="20" rx="10" fill="#4f46e5"/>
+  </g>
+
+  <!-- Camera / Spark Badge Overlay -->
+  <circle cx="370" cy="370" r="54" fill="#4f46e5" stroke="#ffffff" stroke-width="8"/>
+  <!-- Camera icon inside badge -->
+  <path d="M352 362 L358 354 L382 354 L388 362 L400 362 C404.4 362 408 365.6 408 370 L408 388 C408 392.4 404.4 396 400 396 L340 396 C335.6 396 332 392.4 332 388 L332 370 C332 365.6 335.6 362 340 362 Z" fill="#ffffff"/>
+  <circle cx="370" cy="378" r="8" fill="#4f46e5"/>
+</svg>

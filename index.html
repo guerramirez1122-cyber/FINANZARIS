@@ -1,21 +1,41 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FamilyLedger - AI Ticket & Expense Hub</title>
-    <meta name="description" content="Collaborative family expense tracking dashboard integrated with Google Sheets and AI receipt capture, featuring smart audits, fair split settlements, budget pacing, and spending optimization." />
-    <meta property="og:title" content="FamilyLedger - AI Ticket & Expense Hub" />
-    <meta property="og:description" content="Collaborative family expense tracking dashboard integrated with Google Sheets and AI receipt capture, featuring smart audits, fair split settlements, budget pacing, and spending optimization." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>FamilyLedger - Control de Gastos Familiar</title>
+    <meta name="description" content="Control de gastos familiar inteligente integrado con Google Sheets y captura OCR de tickets con IA, división justa y optimización de presupuesto." />
+    
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FamilyLedger" />
+    <meta name="application-name" content="FamilyLedger" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Manifest & App Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+
+    <!-- OpenGraph & Social Sharing -->
+    <meta property="og:title" content="FamilyLedger - Control de Gastos Familiar" />
+    <meta property="og:description" content="Control de gastos familiar inteligente, escáner de tickets y presupuestos del hogar." />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/pwa-512x512.png" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-slate-50 text-slate-900 antialiased font-sans selection:bg-indigo-500 selection:text-white">
+  <body class="bg-slate-50 text-slate-900 antialiased font-sans selection:bg-indigo-500 selection:text-white overscroll-none touch-manipulation">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

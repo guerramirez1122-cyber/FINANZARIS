@@ -15,7 +15,8 @@ import {
   FileSpreadsheet,
   Calendar,
   ChevronDown,
-  Check
+  Check,
+  TrendingUp
 } from 'lucide-react';
 
 interface DashboardOverviewProps {
@@ -28,7 +29,7 @@ interface DashboardOverviewProps {
   selectedMonth: string;
   setSelectedMonth: (m: string) => void;
   onSelectTicket: (t: ExpenseTicket) => void;
-  onNavigateTab: (tab: 'overview' | 'spending' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
+  onNavigateTab: (tab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
   onSyncSheets: () => void;
   isSyncing: boolean;
   isMobileMode?: boolean;
@@ -118,6 +119,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </>
             )}
           </div>
+
+          {/* Balance & Performance Summary Button */}
+          <button
+            onClick={() => onNavigateTab('performance')}
+            className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/80 rounded-xl hover:bg-indigo-100 transition-colors shadow-2xs active:scale-95 touch-manipulation"
+            title="Ver Resumen de Rendimiento Mensual y Anual (Ingresos vs Gastos, Tasa de Ahorro)"
+          >
+            <TrendingUp className="w-3.5 h-3.5 text-indigo-600" />
+            <span className="hidden sm:inline">Rendimiento</span>
+          </button>
 
           {/* Sync Sheet Trigger */}
           <button

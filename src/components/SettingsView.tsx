@@ -8,10 +8,12 @@ import {
   Wallet, 
   ChevronRight, 
   CheckCircle2,
-  DollarSign
+  DollarSign,
+  TrendingUp
 } from 'lucide-react';
 import { FamilyMember, ExpenseCategory, HouseholdFinancialPlan } from '../types/expense';
 import { User } from 'firebase/auth';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface SettingsViewProps {
   financialPlan: HouseholdFinancialPlan;
@@ -27,6 +29,7 @@ interface SettingsViewProps {
   onGoogleSignOut: () => void;
   isMobileMode: boolean;
   onToggleMobileMode: () => void;
+  onNavigateTab?: (tab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -43,6 +46,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onGoogleSignOut,
   isMobileMode,
   onToggleMobileMode,
+  onNavigateTab,
 }) => {
   return (
     <div className="space-y-6 pb-20">
@@ -211,7 +215,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      {/* Section 4: Preferencias de Pantalla */}
+      {/* Section 4: Resumen de Rendimiento & Ahorro */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Rendimiento Financiero &amp; Anual</h2>
+              <p className="text-xs text-slate-500">
+                Visualiza comparativas de ahorro mensual, ingresos vs gastos y vista acumulada anual
+              </p>
+            </div>
+          </div>
+
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('performance')}
+              className="min-h-[44px] px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 touch-manipulation"
+            >
+              <span>Ver Balance</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Section 5: Preferencias de Pantalla */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-slate-900">Simulador Vista Móvil</h3>
@@ -230,6 +261,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         >
           {isMobileMode ? 'Modo Móvil Activo' : 'Modo Escritorio'}
         </button>
+      </div>
+
+      {/* Section 5: Aplicación Móvil e Instalación (PWA) */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span>📲 Aplicación Progresiva (PWA)</span>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              Instalable
+            </span>
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Instala FamilyLedger en tu pantalla de inicio en Android o iPhone para usarla a pantalla completa y sin conexión.
+          </p>
+        </div>
+
+        <PWAInstallButton />
       </div>
     </div>
   );

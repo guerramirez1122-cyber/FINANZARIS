@@ -33,6 +33,7 @@ import { BudgetSettingsModal } from './components/BudgetSettingsModal';
 import { FamilySourcesSettingsModal } from './components/FamilySourcesSettingsModal';
 import { BottomNavBar } from './components/BottomNavBar';
 import { SettingsView } from './components/SettingsView';
+import { MonthlyPerformanceView } from './components/MonthlyPerformanceView';
 import { CheckCircle2, Smartphone, Monitor, Wifi, Battery, Signal, Camera } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { 
@@ -118,7 +119,7 @@ export default function App() {
 
   const [improvements] = useState<ProposedImprovement[]>(PROPOSED_IMPROVEMENTS);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'spending' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets'>('overview');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [selectedTicket, setSelectedTicket] = useState<ExpenseTicket | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -324,11 +325,11 @@ export default function App() {
   ).length;
 
   return (
-    <div className={`min-h-screen ${isMobileMode ? 'bg-slate-900/95 sm:py-6 sm:px-4' : 'bg-slate-50'} flex flex-col text-slate-900 transition-colors`}>
-      {/* Main App Container: Phone Chasis when isMobileMode is true on desktop, or full screen */}
+    <div className={`min-h-[100dvh] ${isMobileMode ? 'bg-slate-50 sm:bg-slate-900/95 sm:py-6 sm:px-4' : 'bg-slate-50'} flex flex-col text-slate-900 transition-colors`}>
+      {/* Main App Container: 100% full width and height on mobile devices; phone chassis on desktop when isMobileMode is true */}
       <div className={`mx-auto w-full transition-all flex flex-col ${
         isMobileMode 
-          ? 'max-w-md bg-white sm:rounded-[44px] sm:border-[8px] sm:border-slate-800 sm:shadow-2xl overflow-hidden min-h-screen sm:min-h-[850px] relative' 
+          ? 'w-full max-w-full sm:max-w-md bg-white sm:rounded-[44px] sm:border-[8px] sm:border-slate-800 sm:shadow-2xl sm:overflow-hidden min-h-[100dvh] sm:min-h-[850px] relative' 
           : 'max-w-7xl'
       }`}>
         {/* Simulated Phone Notch & Status Bar (shown when in mobile mode on desktop) */}
@@ -406,6 +407,19 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'performance' && (
+            <MonthlyPerformanceView
+              tickets={tickets}
+              categories={categories}
+              members={members}
+              financialPlan={financialPlan}
+              selectedMonth={selectedMonth}
+              setSelectedMonth={setSelectedMonth}
+              onOpenBudgetSettings={() => setIsBudgetModalOpen(true)}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
+          )}
+
           {activeTab === 'audit' && (
             <TicketAuditView
               tickets={tickets}
@@ -471,6 +485,7 @@ export default function App() {
               onGoogleSignOut={handleGoogleSignOut}
               isMobileMode={isMobileMode}
               onToggleMobileMode={() => setIsMobileMode(!isMobileMode)}
+              onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
         </main>

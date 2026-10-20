@@ -2,10 +2,11 @@ import React from 'react';
 import { Smartphone, Monitor } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { GoogleSignInButton } from './GoogleSignInButton';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderNavProps {
-  activeTab: 'overview' | 'spending' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets';
-  setActiveTab: (tab: 'overview' | 'spending' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
+  activeTab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets';
+  setActiveTab: (tab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
   onOpenAddModal?: () => void;
   onOpenSourcesModal?: () => void;
   needsReviewCount?: number;
@@ -74,6 +75,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               className="py-1.5 px-3 text-[11px]"
             />
           )}
+
+          {/* In-App PWA Install Button */}
+          <PWAInstallButton />
 
           {onToggleMobileMode && (
             <button
