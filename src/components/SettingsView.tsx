@@ -9,7 +9,8 @@ import {
   ChevronRight, 
   CheckCircle2,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Flame
 } from 'lucide-react';
 import { FamilyMember, ExpenseCategory, HouseholdFinancialPlan } from '../types/expense';
 import { User } from 'firebase/auth';
@@ -29,7 +30,7 @@ interface SettingsViewProps {
   onGoogleSignOut: () => void;
   isMobileMode: boolean;
   onToggleMobileMode: () => void;
-  onNavigateTab?: (tab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
+  onNavigateTab?: (tab: 'overview' | 'spending' | 'debts' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -242,7 +243,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      {/* Section 5: Preferencias de Pantalla */}
+      {/* Section 5: Avalancha Multidivisa de Deudas */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <Flame className="w-5 h-5 fill-rose-500 text-rose-500" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Avalancha Multidivisa de Deudas</h2>
+              <p className="text-xs text-slate-500">
+                Optimización matemática por costo financiero real (Fisher) en ARS y EUR con licuación inflacionaria
+              </p>
+            </div>
+          </div>
+
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('debts')}
+              className="min-h-[44px] px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95 touch-manipulation"
+            >
+              <span>Ver Deudas</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Section 6: Preferencias de Pantalla */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-slate-900">Simulador Vista Móvil</h3>

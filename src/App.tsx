@@ -18,11 +18,14 @@ import {
   INITIAL_TICKETS, 
   INITIAL_SHEET_CONFIG, 
   PROPOSED_IMPROVEMENTS,
-  INITIAL_FINANCIAL_PLAN 
+  INITIAL_FINANCIAL_PLAN,
+  INITIAL_DEBTS 
 } from './data/initialData';
+import { Deuda } from './types/debt';
 import { HeaderNav } from './components/HeaderNav';
 import { DashboardOverview } from './components/DashboardOverview';
 import { SpendingView } from './components/SpendingView';
+import { DebtsDashboardView } from './components/DebtsDashboardView';
 import { TicketAuditView } from './components/TicketAuditView';
 import { FamilySplitsView } from './components/FamilySplitsView';
 import { ImprovementsView } from './components/ImprovementsView';
@@ -119,7 +122,23 @@ export default function App() {
 
   const [improvements] = useState<ProposedImprovement[]>(PROPOSED_IMPROVEMENTS);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets'>('overview');
+  const [debts, setDebts] = useState<Deuda[]>(() => {
+    const saved = localStorage.getItem('family_ledger_debts');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return INITIAL_DEBTS;
+      }
+    }
+    return INITIAL_DEBTS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('family_ledger_debts', JSON.stringify(debts));
+  }, [debts]);
+
+  const [activeTab, setActiveTab] = useState<'overview' | 'spending' | 'debts' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets'>('overview');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
   const [selectedTicket, setSelectedTicket] = useState<ExpenseTicket | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -403,6 +422,14 @@ export default function App() {
                 setActiveTab('audit');
               }}
               onOpenAddModal={() => setIsAddModalOpen(true)}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
+          )}
+
+          {activeTab === 'debts' && (
+            <DebtsDashboardView
+              debts={debts}
+              onUpdateDebts={setDebts}
               onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}

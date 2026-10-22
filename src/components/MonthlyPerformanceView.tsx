@@ -53,7 +53,7 @@ interface MonthlyPerformanceViewProps {
   selectedMonth: string;
   setSelectedMonth: (m: string) => void;
   onOpenBudgetSettings: () => void;
-  onNavigateTab: (tab: 'overview' | 'spending' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets' | 'performance') => void;
+  onNavigateTab: (tab: 'overview' | 'spending' | 'debts' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets' | 'performance') => void;
 }
 
 const MONTH_OPTIONS = [

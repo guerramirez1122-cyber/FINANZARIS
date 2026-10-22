@@ -47,7 +47,7 @@ interface SpendingViewProps {
   onOpenBudgetSettings: () => void;
   onSelectTicket: (ticket: ExpenseTicket) => void;
   onOpenAddModal: () => void;
-  onNavigateTab: (tab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
+  onNavigateTab: (tab: 'overview' | 'spending' | 'debts' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
 }
 
 const MONTH_OPTIONS = [

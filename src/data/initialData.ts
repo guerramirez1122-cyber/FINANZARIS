@@ -6,6 +6,7 @@ import {
   SheetConfig,
   HouseholdFinancialPlan 
 } from '../types/expense';
+import { Deuda } from '../types/debt';
 
 export const INITIAL_FINANCIAL_PLAN: HouseholdFinancialPlan = {
   memberEarnings: {
@@ -607,5 +608,52 @@ function doPost(e) {
     solutionMechanism: 'Extracts itemized unit prices over time. Alerts you when a staple item (e.g. Organic Eggs) jumps >15% across visits, suggesting cheaper alternatives.',
     impactLevel: 'Medium',
     implementationStatus: 'recommended',
+  },
+];
+
+export const INITIAL_DEBTS: Deuda[] = [
+  {
+    id_deuda: 'debt_visa_revolving',
+    acreedor: 'Tarjeta Santander Visa (Saldo Rotativo)',
+    tipo_deuda: 'estatica_interes',
+    moneda: 'ARS',
+    saldo_actual: 480000,
+    tasa_interes_anual: 94.0, // TNA 94%
+    pago_minimo: 48000,
+    cuotas_restantes: 6,
+    incluir_riesgo_cambiario: false,
+  },
+  {
+    id_deuda: 'debt_eur_family',
+    acreedor: 'Préstamo Familiar en Euros (Tío Mateo)',
+    tipo_deuda: 'estatica_interes',
+    moneda: 'EUR',
+    saldo_actual: 1200, // €1,200 EUR
+    tasa_interes_anual: 4.5, // 4.5% anual en EUR
+    pago_minimo: 120, // €120/mes
+    cuotas_restantes: 10,
+    incluir_riesgo_cambiario: true,
+  },
+  {
+    id_deuda: 'debt_fravega_tv',
+    acreedor: 'Smart TV Frávega (12 Cuotas Fijas sin Interés)',
+    tipo_deuda: 'cuotas_sin_interes',
+    moneda: 'ARS',
+    saldo_actual: 630000,
+    tasa_interes_anual: 0.0, // 0% CFT sin interés
+    pago_minimo: 90000, // cuota mensual fija
+    cuotas_restantes: 7,
+    incluir_riesgo_cambiario: false,
+  },
+  {
+    id_deuda: 'debt_friend_ipc',
+    acreedor: 'Préstamo Amigo Nicolás (Indexado a IPC)',
+    tipo_deuda: 'amigo_inflacion',
+    moneda: 'ARS',
+    saldo_actual: 320000,
+    tasa_interes_anual: 2.0, // 2% sobre inflación INDEC
+    pago_minimo: 40000,
+    cuotas_restantes: 8,
+    incluir_riesgo_cambiario: false,
   },
 ];

@@ -16,7 +16,8 @@ import {
   Calendar,
   ChevronDown,
   Check,
-  TrendingUp
+  TrendingUp,
+  Flame
 } from 'lucide-react';
 
 interface DashboardOverviewProps {
@@ -29,7 +30,7 @@ interface DashboardOverviewProps {
   selectedMonth: string;
   setSelectedMonth: (m: string) => void;
   onSelectTicket: (t: ExpenseTicket) => void;
-  onNavigateTab: (tab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
+  onNavigateTab: (tab: 'overview' | 'spending' | 'debts' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
   onSyncSheets: () => void;
   isSyncing: boolean;
   isMobileMode?: boolean;
@@ -119,6 +120,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </>
             )}
           </div>
+
+          {/* Debts Avalanche Button */}
+          <button
+            onClick={() => onNavigateTab('debts')}
+            className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200/80 rounded-xl hover:bg-rose-100 transition-colors shadow-2xs active:scale-95 touch-manipulation"
+            title="Ver Avalancha Multidivisa de Deudas (Costo Financiero Real Fisher)"
+          >
+            <Flame className="w-3.5 h-3.5 text-rose-600 fill-rose-600" />
+            <span className="hidden sm:inline">Deudas</span>
+          </button>
 
           {/* Balance & Performance Summary Button */}
           <button

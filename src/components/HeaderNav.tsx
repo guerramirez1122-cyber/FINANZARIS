@@ -5,8 +5,8 @@ import { GoogleSignInButton } from './GoogleSignInButton';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderNavProps {
-  activeTab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets';
-  setActiveTab: (tab: 'overview' | 'spending' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
+  activeTab: 'overview' | 'spending' | 'debts' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets';
+  setActiveTab: (tab: 'overview' | 'spending' | 'debts' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
   onOpenAddModal?: () => void;
   onOpenSourcesModal?: () => void;
   needsReviewCount?: number;
