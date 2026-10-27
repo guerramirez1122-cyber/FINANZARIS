@@ -1,0 +1,124 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all unknown paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Check if the current authenticated user is one of the two authorized family members
+    function isAuthorizedFamilyMember() {
+      return isEmailVerified() && (
+        request.auth.token.email == 'guerramirez1122@gmail.com' ||
+        (
+          exists(/databases/$(database)/documents/households/family_default/config/security) &&
+          request.auth.token.email == get(/databases/$(database)/documents/households/family_default/config/security).data.secondaryEmail
+        )
+      );
+    }
+
+    // Primary owner check (for security configuration updates)
+    function isPrimaryOwner() {
+      return isEmailVerified() && request.auth.token.email == 'guerramirez1122@gmail.com';
+    }
+
+    // Validation helpers
+    function isValidTicket(data) {
+      return data.keys().hasAll(['id', 'date', 'merchant', 'category', 'amount', 'paidByMemberId', 'status']) &&
+        data.id is string && data.id.size() <= 100 &&
+        data.date is string && data.date.size() <= 30 &&
+        data.merchant is string && data.merchant.size() <= 150 &&
+        data.category is string && data.category.size() <= 100 &&
+        data.amount is number && data.amount >= 0 &&
+        data.paidByMemberId is string && data.paidByMemberId.size() <= 100 &&
+        data.status is string && data.status.size() <= 50;
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['id', 'name', 'monthlyBudget', 'color']) &&
+        data.id is string && data.id.size() <= 100 &&
+        data.name is string && data.name.size() <= 100 &&
+        data.monthlyBudget is number && data.monthlyBudget >= 0 &&
+        data.color is string && data.color.size() <= 30;
+    }
+
+    function isValidDeuda(data) {
+      return data.keys().hasAll(['id_deuda', 'acreedor', 'tipo_deuda', 'moneda', 'saldo_actual', 'pago_minimo']) &&
+        data.id_deuda is string && data.id_deuda.size() <= 100 &&
+        data.acreedor is string && data.acreedor.size() <= 150 &&
+        data.tipo_deuda is string && data.tipo_deuda.size() <= 50 &&
+        data.moneda is string && data.moneda.size() <= 10 &&
+        data.saldo_actual is number && data.saldo_actual >= 0 &&
+        data.pago_minimo is number && data.pago_minimo >= 0;
+    }
+
+    function isValidFamilyMember(data) {
+      return data.keys().hasAll(['id', 'name', 'role', 'color']) &&
+        data.id is string && data.id.size() <= 100 &&
+        data.name is string && data.name.size() <= 100 &&
+        data.role is string && data.role.size() <= 50 &&
+        data.color is string && data.color.size() <= 30;
+    }
+
+    function isValidSecurityConfig(data) {
+      return data.keys().hasAll(['primaryEmail']) &&
+        data.primaryEmail is string && data.primaryEmail.size() <= 150;
+    }
+
+    // Household subcollections
+    match /households/{householdId} {
+      // Tickets
+      match /tickets/{ticketId} {
+        allow read: if isAuthorizedFamilyMember();
+        allow create: if isAuthorizedFamilyMember() && isValidId(ticketId) && isValidTicket(request.resource.data);
+        allow update: if isAuthorizedFamilyMember() && isValidId(ticketId) && isValidTicket(request.resource.data);
+        allow delete: if isAuthorizedFamilyMember() && isValidId(ticketId);
+      }
+
+      // Categories
+      match /categories/{categoryId} {
+        allow read: if isAuthorizedFamilyMember();
+        allow create: if isAuthorizedFamilyMember() && isValidId(categoryId) && isValidCategory(request.resource.data);
+        allow update: if isAuthorizedFamilyMember() && isValidId(categoryId) && isValidCategory(request.resource.data);
+        allow delete: if isAuthorizedFamilyMember() && isValidId(categoryId);
+      }
+
+      // Debts
+      match /debts/{debtId} {
+        allow read: if isAuthorizedFamilyMember();
+        allow create: if isAuthorizedFamilyMember() && isValidId(debtId) && isValidDeuda(request.resource.data);
+        allow update: if isAuthorizedFamilyMember() && isValidId(debtId) && isValidDeuda(request.resource.data);
+        allow delete: if isAuthorizedFamilyMember() && isValidId(debtId);
+      }
+
+      // Family Members
+      match /members/{memberId} {
+        allow read: if isAuthorizedFamilyMember();
+        allow create: if isAuthorizedFamilyMember() && isValidId(memberId) && isValidFamilyMember(request.resource.data);
+        allow update: if isAuthorizedFamilyMember() && isValidId(memberId) && isValidFamilyMember(request.resource.data);
+        allow delete: if isAuthorizedFamilyMember() && isValidId(memberId);
+      }
+
+      // Config & Security
+      match /config/{configId} {
+        allow read: if isAuthorizedFamilyMember();
+        allow create, update: if isPrimaryOwner() && isValidId(configId) && isValidSecurityConfig(request.resource.data);
+        allow delete: if isPrimaryOwner() && isValidId(configId);
+      }
+    }
+  }
+}

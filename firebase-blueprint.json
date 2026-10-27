@@ -1,0 +1,109 @@
+{
+  "entities": {
+    "Ticket": {
+      "title": "Expense Ticket",
+      "description": "Family expense ticket with OCR data, split and verification status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "date": { "type": "string", "maxLength": 30 },
+        "time": { "type": "string", "maxLength": 20 },
+        "merchant": { "type": "string", "maxLength": 150 },
+        "category": { "type": "string", "maxLength": 100 },
+        "amount": { "type": "number" },
+        "taxAmount": { "type": "number" },
+        "tipAmount": { "type": "number" },
+        "paidByMemberId": { "type": "string", "maxLength": 100 },
+        "splitType": { "type": "string", "maxLength": 50 },
+        "aiConfidence": { "type": "number" },
+        "status": { "type": "string", "maxLength": 50 },
+        "source": { "type": "string", "maxLength": 50 },
+        "sheetRowIndex": { "type": "number" },
+        "aiNotes": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "date", "merchant", "category", "amount", "paidByMemberId", "status"]
+    },
+    "Category": {
+      "title": "Expense Category",
+      "description": "Category budget limits and colors",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "maxLength": 100 },
+        "monthlyBudget": { "type": "number" },
+        "color": { "type": "string", "maxLength": 30 },
+        "icon": { "type": "string", "maxLength": 50 },
+        "description": { "type": "string", "maxLength": 500 },
+        "isEssential": { "type": "boolean" }
+      },
+      "required": ["id", "name", "monthlyBudget", "color"]
+    },
+    "Deuda": {
+      "title": "Debt Item",
+      "description": "Debt item evaluated via avalanche engine",
+      "type": "object",
+      "properties": {
+        "id_deuda": { "type": "string", "maxLength": 100 },
+        "acreedor": { "type": "string", "maxLength": 150 },
+        "tipo_deuda": { "type": "string", "maxLength": 50 },
+        "moneda": { "type": "string", "maxLength": 10 },
+        "saldo_actual": { "type": "number" },
+        "tasa_interes_anual": { "type": "number" },
+        "pago_minimo": { "type": "number" },
+        "cuotas_restantes": { "type": "number" },
+        "incluir_riesgo_cambiario": { "type": "boolean" },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id_deuda", "acreedor", "tipo_deuda", "moneda", "saldo_actual", "pago_minimo"]
+    },
+    "FamilyMember": {
+      "title": "Family Member",
+      "description": "Member profile and income settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 150 },
+        "color": { "type": "string", "maxLength": 30 },
+        "monthlyTargetSpend": { "type": "number" }
+      },
+      "required": ["id", "name", "role", "color"]
+    },
+    "SecurityConfig": {
+      "title": "Security Configuration",
+      "description": "Whitelist of authorized family emails for data access",
+      "type": "object",
+      "properties": {
+        "primaryEmail": { "type": "string", "maxLength": 150 },
+        "secondaryEmail": { "type": "string", "maxLength": 150 },
+        "authorizedEmails": { "type": "string", "maxLength": 500 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["primaryEmail"]
+    }
+  },
+  "firestore": {
+    "/households/{householdId}/tickets/{ticketId}": {
+      "schema": "Ticket",
+      "description": "Family expense receipts and ticket items"
+    },
+    "/households/{householdId}/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Household spending categories and budget limits"
+    },
+    "/households/{householdId}/debts/{debtId}": {
+      "schema": "Deuda",
+      "description": "Liabilities and avalanche debts"
+    },
+    "/households/{householdId}/members/{memberId}": {
+      "schema": "FamilyMember",
+      "description": "Household members participating in ledger"
+    },
+    "/households/{householdId}/config/{configId}": {
+      "schema": "SecurityConfig",
+      "description": "Security whitelist and general household settings"
+    }
+  }
+}

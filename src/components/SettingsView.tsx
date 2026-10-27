@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Sliders, 
   Users, 
@@ -10,7 +10,13 @@ import {
   CheckCircle2,
   DollarSign,
   TrendingUp,
-  Flame
+  Flame,
+  Lock,
+  Shield,
+  KeyRound,
+  RotateCcw,
+  Sparkles,
+  UserCheck
 } from 'lucide-react';
 import { FamilyMember, ExpenseCategory, HouseholdFinancialPlan } from '../types/expense';
 import { User } from 'firebase/auth';
@@ -31,6 +37,10 @@ interface SettingsViewProps {
   isMobileMode: boolean;
   onToggleMobileMode: () => void;
   onNavigateTab?: (tab: 'overview' | 'spending' | 'debts' | 'performance' | 'audit' | 'splits' | 'settings' | 'improvements' | 'sheets') => void;
+  isFirestoreLive?: boolean;
+  secondaryAuthorizedEmail?: string;
+  onUpdateSecondaryEmail?: (email: string) => Promise<void>;
+  onResetTrialData?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -48,7 +58,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   isMobileMode,
   onToggleMobileMode,
   onNavigateTab,
+  isFirestoreLive = false,
+  secondaryAuthorizedEmail = '',
+  onUpdateSecondaryEmail,
+  onResetTrialData,
 }) => {
+  const [partnerEmail, setPartnerEmail] = useState(secondaryAuthorizedEmail);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [emailSaveSuccess, setEmailSaveSuccess] = useState(false);
+
+  const handleSavePartnerEmail = async () => {
+    if (!onUpdateSecondaryEmail) return;
+    setIsSavingEmail(true);
+    try {
+      await onUpdateSecondaryEmail(partnerEmail);
+      setEmailSaveSuccess(true);
+      setTimeout(() => setEmailSaveSuccess(false), 3000);
+    } finally {
+      setIsSavingEmail(false);
+    }
+  };
   return (
     <div className="space-y-6 pb-20">
       {/* Header */}
@@ -162,6 +191,116 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Section 2.5: Bóveda Firestore & Seguridad Familiar (2 Usuarios) */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+              isFirestoreLive ? 'bg-emerald-50 text-emerald-600' : 'bg-indigo-50 text-indigo-600'
+            }`}>
+              <Shield className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900">Bóveda en la Nube &amp; Seguridad</h2>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  isFirestoreLive
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                }`}>
+                  {isFirestoreLive ? '🔒 Firestore en Vivo' : '🧪 Versión Libre de Pruebas'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Acceso exclusivo y restringido únicamente para ustedes dos mediante Google Auth y reglas Firestore.
+              </p>
+            </div>
+          </div>
+
+          {onResetTrialData && (
+            <button
+              type="button"
+              onClick={onResetTrialData}
+              className="min-h-[40px] px-3 py-1.5 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0 active:scale-95 touch-manipulation"
+              title="Restaurar datos de muestra para pruebas libres"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+              <span>Restablecer Datos de Prueba</span>
+            </button>
+          )}
+        </div>
+
+        {/* Authorized Family Emails Whitelist */}
+        <div className="space-y-3">
+          <div className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Usuarios con Acceso Autorizado (Máx. 2)</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Primary User 1 */}
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                  1
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    guerramirez1122@gmail.com
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium">Propietario Principal (Admin)</div>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full shrink-0">
+                Autorizado
+              </span>
+            </div>
+
+            {/* Partner User 2 */}
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-violet-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                    2
+                  </div>
+                  <div className="text-xs font-bold text-slate-900">Segundo Usuario (Pareja)</div>
+                </div>
+                {partnerEmail && (
+                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100/70 px-2 py-0.5 rounded-full">
+                    Co-Administrador
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 mt-1">
+                <input
+                  type="email"
+                  value={partnerEmail}
+                  onChange={(e) => setPartnerEmail(e.target.value)}
+                  placeholder="correo_pareja@gmail.com"
+                  className="w-full text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={handleSavePartnerEmail}
+                  disabled={isSavingEmail || !partnerEmail}
+                  className="min-h-[34px] px-3 py-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95"
+                >
+                  {isSavingEmail ? '...' : emailSaveSuccess ? '✓' : 'Guardar'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-amber-50/80 border border-amber-200/70 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+            <KeyRound className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed">
+              <strong>Seguridad Zero-Trust:</strong> La base de datos Firestore en Google Cloud rechaza de forma estricta cualquier intento de lectura o modificación que no provenga de uno de estos dos correos autenticados con Google.
+            </p>
+          </div>
         </div>
       </div>
 

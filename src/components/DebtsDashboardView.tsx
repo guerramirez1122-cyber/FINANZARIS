@@ -142,15 +142,15 @@ export const DebtsDashboardView: React.FC<DebtsDashboardViewProps> = ({
       {/* ===================================================================== */}
       {/* 1. HEADER & MACRO TICKER BAR                                          */}
       {/* ===================================================================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              <Flame className="w-6 h-6 text-rose-500 fill-rose-500" />
-              <span>Avalancha Multidivisa de Deudas</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 fill-rose-500 shrink-0" />
+              <span>Avalancha de Deudas</span>
             </h1>
-            <span className="text-[11px] font-bold bg-rose-50 text-rose-700 px-2 py-0.5 rounded-full border border-rose-100">
-              FINANZARIS Engine
+            <span className="text-[10px] sm:text-[11px] font-bold bg-rose-50 text-rose-700 px-2 py-0.5 rounded-full border border-rose-100 shrink-0">
+              Multidivisa
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -158,11 +158,11 @@ export const DebtsDashboardView: React.FC<DebtsDashboardViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={handleRefreshMacro}
             disabled={isRefreshingMacro}
-            className="min-h-[44px] flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95 touch-manipulation disabled:opacity-50"
+            className="min-h-[40px] sm:min-h-[44px] flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95 touch-manipulation disabled:opacity-50"
             title="Actualizar cotización Euro e Inflación desde DolarApi / ArgentinaDatos"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isRefreshingMacro ? 'animate-spin' : ''}`} />
@@ -174,7 +174,7 @@ export const DebtsDashboardView: React.FC<DebtsDashboardViewProps> = ({
               setEditingDebt(null);
               setIsModalOpen(true);
             }}
-            className="min-h-[44px] flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl transition-all shadow-md shadow-indigo-600/20 active:scale-95 touch-manipulation"
+            className="min-h-[40px] sm:min-h-[44px] flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 rounded-xl transition-all shadow-md shadow-indigo-600/20 active:scale-95 touch-manipulation"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Nueva Deuda</span>
@@ -183,48 +183,59 @@ export const DebtsDashboardView: React.FC<DebtsDashboardViewProps> = ({
       </div>
 
       {/* Macro Ticker Strip */}
-      <div className="bg-slate-900 text-white rounded-2xl p-3.5 sm:p-4 shadow-md border border-slate-800">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-slate-400 font-medium">Euro Oficial/Libre:</span>
-              <strong className="font-mono text-emerald-300 text-sm font-bold">
-                ${macro.tipo_cambio_eur_ars.toLocaleString('es-AR', { minimumFractionDigits: 2 })} ARS
-              </strong>
+      <div className="bg-slate-900 text-white rounded-2xl p-3 sm:p-4 shadow-md border border-slate-800 max-w-full overflow-hidden">
+        <div className="space-y-2.5">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
+            <div className="flex items-center gap-2 bg-slate-800/60 p-2 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <div className="min-w-0">
+                <span className="text-slate-400 text-[10px] block leading-tight">Euro Libre / Oficial</span>
+                <strong className="font-mono text-emerald-300 text-xs sm:text-sm font-bold truncate block">
+                  ${macro.tipo_cambio_eur_ars.toLocaleString('es-AR', { minimumFractionDigits: 2 })} ARS
+                </strong>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400 font-medium">Inflación Anual Est.:</span>
-              <strong className="font-mono text-amber-300 font-bold">
-                {macro.inflacion_anual_estimada.toFixed(1)}% ({macro.inflacion_mensual_estimada.toFixed(1)}%/mes)
-              </strong>
+            <div className="flex items-center gap-2 bg-slate-800/60 p-2 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-slate-400 text-[10px] block leading-tight">Inflación Anual Est.</span>
+                <strong className="font-mono text-amber-300 text-xs sm:text-sm font-bold truncate block">
+                  {macro.inflacion_anual_estimada.toFixed(1)}% ({macro.inflacion_mensual_estimada.toFixed(1)}%/m)
+                </strong>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400 font-medium">Devaluación Est. ARS/EUR:</span>
-              <strong className="font-mono text-indigo-300 font-bold">
-                {macro.devaluacion_anual_eur_ars.toFixed(1)}%
-              </strong>
+            <div className="flex items-center gap-2 bg-slate-800/60 p-2 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-slate-400 text-[10px] block leading-tight">Devaluación Est. EUR</span>
+                <strong className="font-mono text-indigo-300 text-xs sm:text-sm font-bold truncate block">
+                  {macro.devaluacion_anual_eur_ars.toFixed(1)}%
+                </strong>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400 font-medium">Prima Riesgo Cambiario:</span>
-              <span className="font-mono text-slate-300">
-                +{macro.tasa_riesgo_cambiario_anual.toFixed(1)}%
-              </span>
+            <div className="flex items-center gap-2 bg-slate-800/60 p-2 rounded-xl">
+              <span className="w-2 h-2 rounded-full bg-rose-400 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-slate-400 text-[10px] block leading-tight">Riesgo Cambiario</span>
+                <span className="font-mono text-slate-200 text-xs sm:text-sm font-semibold truncate block">
+                  +{macro.tasa_riesgo_cambiario_anual.toFixed(1)}%
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="text-[10px] text-slate-400 font-mono self-start sm:self-auto truncate">
+          <div className="text-[10px] text-slate-400 font-mono truncate pt-1 border-t border-slate-800/80">
             Fuente: {macro.fuente_cotizacion.split('(')[0]} · {macro.fuente_inflacion.split('(')[0]}
           </div>
         </div>
 
         {macroNotice && (
           <div className="mt-2 pt-2 border-t border-slate-800 text-[11px] text-emerald-300 flex items-center gap-1.5 animate-fade-in">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>{macroNotice}</span>
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{macroNotice}</span>
           </div>
         )}
       </div>
@@ -232,63 +243,63 @@ export const DebtsDashboardView: React.FC<DebtsDashboardViewProps> = ({
       {/* ===================================================================== */}
       {/* 2. CONSOLIDATED PORTFOLIO KPI CARDS                                   */}
       {/* ===================================================================== */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Card 1: Deuda Total Equivalente */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-          <div className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">
-            Deuda Total Consolidada
+        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-xs min-w-0">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wider truncate">
+            Deuda Total
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 mt-1">
+          <div className="text-lg sm:text-2xl font-bold font-mono text-slate-900 mt-1 truncate">
             ${resultadoAvalancha.resumen_cartera.deuda_total_ars.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
           </div>
-          <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1.5">
+          <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1 truncate">
             <span>En EUR:</span>
-            <strong className="font-mono text-indigo-600">
+            <strong className="font-mono text-indigo-600 truncate">
               €{resultadoAvalancha.resumen_cartera.deuda_total_eur.toLocaleString('es-AR')}
             </strong>
           </div>
         </div>
 
         {/* Card 2: Mínimos Mensuales Obligatorios */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-          <div className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">
-            Compromiso Mensual Mínimo
+        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-xs min-w-0">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wider truncate">
+            Mínimo Mensual
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-rose-600 mt-1">
+          <div className="text-lg sm:text-2xl font-bold font-mono text-rose-600 mt-1 truncate">
             ${resultadoAvalancha.resumen_cartera.pago_minimo_total_ars.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
-            Obligatorio para no generar mora
+          <div className="text-[10px] text-slate-400 mt-1 truncate">
+            Para evitar mora
           </div>
         </div>
 
         {/* Card 3: Deuda Crítica Urgente (CFR > 0) */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-          <div className="text-[11px] text-slate-500 font-medium uppercase tracking-wider flex items-center justify-between">
-            <span>Punta de Avalancha</span>
-            <Flame className="w-3.5 h-3.5 text-rose-500" />
+        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-xs min-w-0">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wider flex items-center justify-between">
+            <span className="truncate">Punta Avalancha</span>
+            <Flame className="w-3.5 h-3.5 text-rose-500 shrink-0 ml-1" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-rose-700 mt-1">
+          <div className="text-lg sm:text-2xl font-bold font-mono text-rose-700 mt-1 truncate">
             ${resultadoAvalancha.resumen_cartera.deuda_critica_urgente_ars.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
           </div>
-          <div className="text-[10px] text-rose-600 font-semibold mt-1">
+          <div className="text-[10px] text-rose-600 font-semibold mt-1 truncate">
             {resultadoAvalancha.resumen_cartera.deuda_critica_urgente_ars > 0 
-              ? 'Tasa real destructiva: Liquidar ya' 
-              : '✓ Sin deudas a tasa usuraria'}
+              ? 'Liquidar urgente' 
+              : '✓ Sin usura'}
           </div>
         </div>
 
         {/* Card 4: Deuda Licuándose por Inflación (CFR < 0) */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-          <div className="text-[11px] text-slate-500 font-medium uppercase tracking-wider flex items-center justify-between">
-            <span>Licuación por Inflación</span>
-            <TrendingDown className="w-3.5 h-3.5 text-emerald-600" />
+        <div className="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 shadow-xs min-w-0">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium uppercase tracking-wider flex items-center justify-between">
+            <span className="truncate">Licuación</span>
+            <TrendingDown className="w-3.5 h-3.5 text-emerald-600 shrink-0 ml-1" />
           </div>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 mt-1">
+          <div className="text-lg sm:text-2xl font-bold font-mono text-emerald-600 mt-1 truncate">
             ${resultadoAvalancha.resumen_cartera.deuda_licuandose_ars.toLocaleString('es-AR', { maximumFractionDigits: 0 })}
           </div>
-          <div className="text-[10px] text-emerald-700 font-medium mt-1">
-            Cuotas fijas 0%: Pagar solo mínimo
+          <div className="text-[10px] text-emerald-700 font-medium mt-1 truncate">
+            Pagar solo mínimo
           </div>
         </div>
       </div>

@@ -46,6 +46,24 @@ import {
   getCachedAccessToken 
 } from './services/googleAuth';
 import { updateSheetCell } from './services/googleSheets';
+import { 
+  testConnection, 
+  isUserAuthorized, 
+  PRIMARY_AUTHORIZED_EMAIL,
+  subscribeToTickets, 
+  subscribeToCategories, 
+  subscribeToDebts, 
+  subscribeToFamilyMembers, 
+  subscribeToSecurityConfig,
+  saveTicketToFirestore, 
+  deleteTicketFromFirestore, 
+  saveDebtToFirestore, 
+  deleteDebtFromFirestore, 
+  saveCategoryToFirestore, 
+  saveMemberToFirestore, 
+  saveSecurityConfig,
+  seedInitialDataIfEmpty 
+} from './services/firestoreSync';
 
 export default function App() {
   // Mobile-first mode state: defaults to true so mobile layout is immediately visible!
@@ -54,6 +72,14 @@ export default function App() {
     if (saved !== null) return saved === 'true';
     return true; // Default to mobile-first phone app view
   });
+
+  // Secondary authorized email for 2-user exclusive access
+  const [secondaryAuthorizedEmail, setSecondaryAuthorizedEmail] = useState<string>(() => {
+    return localStorage.getItem('family_ledger_secondary_email') || '';
+  });
+
+  // Active status of real-time Firestore database sync
+  const [isFirestoreLive, setIsFirestoreLive] = useState<boolean>(false);
 
   useEffect(() => {
     localStorage.setItem('family_ledger_mobile_mode', String(isMobileMode));
@@ -180,7 +206,12 @@ export default function App() {
     };
   }, []);
 
-  // Sync state to local storage
+  // Test initial Firestore connection on boot
+  useEffect(() => {
+    testConnection();
+  }, []);
+
+  // Sync state to local storage (offline resilience and trial version)
   useEffect(() => {
     localStorage.setItem('family_ledger_tickets', JSON.stringify(tickets));
   }, [tickets]);
@@ -200,6 +231,67 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('family_ledger_sheet_config', JSON.stringify(sheetConfig));
   }, [sheetConfig]);
+
+  // Firestore Real-Time Cloud Sync: Only activates for the 2 authorized family emails
+  useEffect(() => {
+    if (!googleUser?.email) {
+      setIsFirestoreLive(false);
+      return;
+    }
+
+    const authorized = isUserAuthorized(googleUser.email, secondaryAuthorizedEmail);
+    if (!authorized) {
+      setIsFirestoreLive(false);
+      showToast(`Aviso: ${googleUser.email} no está en la lista de los 2 correos autorizados.`);
+      return;
+    }
+
+    setIsFirestoreLive(true);
+    showToast(`🔒 Bóveda Firestore en Vivo activa (${googleUser.email})`);
+
+    // Seed data to cloud if collection is currently empty
+    seedInitialDataIfEmpty(tickets, categories, debts, members);
+
+    // Subscribe to Firestore collections in real time
+    const unsubTickets = subscribeToTickets((cloudTickets) => {
+      if (cloudTickets.length > 0) {
+        setTickets(cloudTickets);
+      }
+    });
+
+    const unsubCategories = subscribeToCategories((cloudCategories) => {
+      if (cloudCategories.length > 0) {
+        setCategories(cloudCategories);
+      }
+    });
+
+    const unsubDebts = subscribeToDebts((cloudDebts) => {
+      if (cloudDebts.length > 0) {
+        setDebts(cloudDebts);
+      }
+    });
+
+    const unsubMembers = subscribeToFamilyMembers((cloudMembers) => {
+      if (cloudMembers.length > 0) {
+        setMembers(cloudMembers);
+      }
+    });
+
+    const unsubSecurity = subscribeToSecurityConfig((config) => {
+      if (config.secondaryEmail) {
+        setSecondaryAuthorizedEmail(config.secondaryEmail);
+        localStorage.setItem('family_ledger_secondary_email', config.secondaryEmail);
+      }
+    });
+
+    return () => {
+      unsubTickets();
+      unsubCategories();
+      unsubDebts();
+      unsubMembers();
+      unsubSecurity();
+    };
+  }, [googleUser, secondaryAuthorizedEmail]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -228,6 +320,7 @@ export default function App() {
     await googleSignOut();
     setGoogleUser(null);
     setGoogleAccessToken(null);
+    setIsFirestoreLive(false);
     showToast('Signed out of Google Workspace');
   };
 
@@ -235,6 +328,9 @@ export default function App() {
     setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
     if (selectedTicket?.id === updated.id) {
       setSelectedTicket(updated);
+    }
+    if (isFirestoreLive) {
+      saveTicketToFirestore(updated).catch(console.error);
     }
     showToast(`Updated ticket ${updated.id} (${updated.merchant})`);
   };
@@ -244,13 +340,49 @@ export default function App() {
     if (selectedTicket?.id === id) {
       setSelectedTicket(null);
     }
+    if (isFirestoreLive) {
+      deleteTicketFromFirestore(id).catch(console.error);
+    }
     showToast(`Removed ticket ${id}`);
   };
 
   const handleAddTicket = (newTicket: ExpenseTicket) => {
     setTickets((prev) => [newTicket, ...prev]);
     setSelectedTicket(newTicket);
+    if (isFirestoreLive) {
+      saveTicketToFirestore(newTicket).catch(console.error);
+    }
     showToast(`Ingested new receipt for ${newTicket.merchant} ($${newTicket.amount.toFixed(2)})`);
+  };
+
+  const handleUpdateDebts = (updatedDebts: Deuda[]) => {
+    setDebts(updatedDebts);
+    if (isFirestoreLive) {
+      updatedDebts.forEach((d) => saveDebtToFirestore(d).catch(console.error));
+    }
+  };
+
+  const handleUpdateSecondaryEmail = async (email: string) => {
+    setSecondaryAuthorizedEmail(email);
+    localStorage.setItem('family_ledger_secondary_email', email);
+    if (isFirestoreLive) {
+      await saveSecurityConfig(email);
+    }
+    showToast(`Segundo correo autorizado actualizado: ${email}`);
+  };
+
+  const handleResetTrialData = () => {
+    setTickets(INITIAL_TICKETS);
+    setCategories(INITIAL_CATEGORIES);
+    setDebts(INITIAL_DEBTS);
+    setMembers(INITIAL_FAMILY_MEMBERS);
+    setFinancialPlan(INITIAL_FINANCIAL_PLAN);
+    localStorage.setItem('family_ledger_tickets', JSON.stringify(INITIAL_TICKETS));
+    localStorage.setItem('family_ledger_categories', JSON.stringify(INITIAL_CATEGORIES));
+    localStorage.setItem('family_ledger_debts', JSON.stringify(INITIAL_DEBTS));
+    localStorage.setItem('family_ledger_members', JSON.stringify(INITIAL_FAMILY_MEMBERS));
+    localStorage.setItem('family_ledger_financial_plan', JSON.stringify(INITIAL_FINANCIAL_PLAN));
+    showToast('¡Datos de prueba restablecidos con éxito!');
   };
 
   const handleSyncSheets = () => {
@@ -344,9 +476,9 @@ export default function App() {
   ).length;
 
   return (
-    <div className={`min-h-[100dvh] ${isMobileMode ? 'bg-slate-50 sm:bg-slate-900/95 sm:py-6 sm:px-4' : 'bg-slate-50'} flex flex-col text-slate-900 transition-colors`}>
+    <div className={`min-h-[100dvh] w-full max-w-full overflow-x-hidden ${isMobileMode ? 'bg-slate-50 sm:bg-slate-900/95 sm:py-6 sm:px-4' : 'bg-slate-50'} flex flex-col text-slate-900 transition-colors`}>
       {/* Main App Container: 100% full width and height on mobile devices; phone chassis on desktop when isMobileMode is true */}
-      <div className={`mx-auto w-full transition-all flex flex-col ${
+      <div className={`mx-auto w-full max-w-full overflow-x-hidden transition-all flex flex-col ${
         isMobileMode 
           ? 'w-full max-w-full sm:max-w-md bg-white sm:rounded-[44px] sm:border-[8px] sm:border-slate-800 sm:shadow-2xl sm:overflow-hidden min-h-[100dvh] sm:min-h-[850px] relative' 
           : 'max-w-7xl'
@@ -377,10 +509,11 @@ export default function App() {
           isAuthLoading={isAuthLoading}
           isMobileMode={isMobileMode}
           onToggleMobileMode={() => setIsMobileMode(!isMobileMode)}
+          isFirestoreLive={isFirestoreLive}
         />
 
         {/* Main Content Area */}
-        <main className={`flex-1 w-full mx-auto px-3 sm:px-6 py-4 pb-36 ${isMobileMode ? 'max-w-full' : 'max-w-7xl'}`}>
+        <main className={`flex-1 w-full max-w-full overflow-x-hidden mx-auto px-3 sm:px-6 py-4 pb-36 ${isMobileMode ? 'max-w-full' : 'max-w-7xl'}`}>
           {toastMessage && (
             <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700 animate-fade-in max-w-[90vw]">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -429,7 +562,7 @@ export default function App() {
           {activeTab === 'debts' && (
             <DebtsDashboardView
               debts={debts}
-              onUpdateDebts={setDebts}
+              onUpdateDebts={handleUpdateDebts}
               onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
@@ -513,6 +646,10 @@ export default function App() {
               isMobileMode={isMobileMode}
               onToggleMobileMode={() => setIsMobileMode(!isMobileMode)}
               onNavigateTab={(tab) => setActiveTab(tab)}
+              isFirestoreLive={isFirestoreLive}
+              secondaryAuthorizedEmail={secondaryAuthorizedEmail}
+              onUpdateSecondaryEmail={handleUpdateSecondaryEmail}
+              onResetTrialData={handleResetTrialData}
             />
           )}
         </main>
