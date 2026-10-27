@@ -550,22 +550,26 @@ export default function App() {
           </footer>
         )}
 
-        {/* Google Drive Style Floating Camera Scanner Action Button - Always Floating & Visible On Scroll */}
+        {/* Google Drive Style Floating Camera Scanner Action Button - Constrained to Mobile Frame and Docked Above Bottom Bar */}
         <aside 
           aria-label="Acceso rápido para escanear tickets"
-          className="fixed bottom-20 right-4 sm:bottom-22 sm:right-6 z-50 pointer-events-auto"
+          className={`z-50 pointer-events-auto transition-all ${
+            isMobileMode
+              ? 'fixed sm:absolute bottom-[72px] right-3.5 sm:bottom-[74px] sm:right-4'
+              : 'fixed bottom-[74px] right-4 sm:bottom-20 sm:right-6'
+          }`}
         >
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2.5 px-4 sm:px-5 py-3.5 bg-gradient-to-tr from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 active:scale-95 text-white rounded-2xl sm:rounded-full shadow-[0_10px_30px_rgba(79,70,229,0.5)] hover:shadow-[0_14px_36px_rgba(79,70,229,0.6)] border-2 border-white ring-4 ring-indigo-500/20 transition-all group touch-manipulation min-h-[52px]"
+            className="flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-tr from-indigo-600 via-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 active:scale-95 text-white rounded-full shadow-[0_8px_24px_rgba(79,70,229,0.4)] hover:shadow-[0_12px_30px_rgba(79,70,229,0.5)] border-2 border-white ring-2 ring-indigo-500/25 transition-all group touch-manipulation min-h-[44px] sm:min-h-[48px]"
             title="Escanear ticket con cámara trasera (Estilo Google Drive)"
             aria-label="Escanear o subir ticket con la cámara"
           >
-            <div className="w-7 h-7 rounded-xl sm:rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <Camera className="w-4.5 h-4.5 stroke-[2.4] text-white group-hover:scale-110 transition-transform" />
+            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.4] text-white group-hover:scale-110 transition-transform" />
             </div>
-            <span className="text-xs sm:text-sm font-bold tracking-tight text-white pr-1 select-none">
+            <span className="text-xs font-bold tracking-tight text-white pr-0.5 select-none">
               Escanear
             </span>
           </button>
@@ -581,11 +585,12 @@ export default function App() {
           isMobileMode={isMobileMode}
         />
 
-        {/* Phone Bottom Home Indicator */}
+        {/* Phone Bottom Home Indicator (iOS Style Bar on Desktop Simulator) */}
         {isMobileMode && (
-          <div className="hidden sm:block py-1 bg-white select-none">
-            <div className="w-32 h-1 bg-slate-400 rounded-full mx-auto" />
-          </div>
+          <div 
+            aria-hidden="true"
+            className="hidden sm:block absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 bg-slate-900/30 rounded-full select-none z-50 pointer-events-none" 
+          />
         )}
       </div>
 
